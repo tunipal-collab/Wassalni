@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>وصّلني — لوحة الإدارة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#080c18;--s1:#0e1220;--s2:#141828;--s3:#1c2238;
+  --border:#1e2840;--border2:#2a3455;
+  --accent:#6366f1;--accent2:#4f46e5;
+  --green:#10b981;--red:#ef4444;--yellow:#f59e0b;
+  --blue:#3b82f6;--purple:#8b5cf6;--orange:#f97316;--cyan:#06b6d4;
+  --text:#e2e8f0;--text2:#64748b;--text3:#334155;
+  --mono:'JetBrains Mono',monospace;--font:'Tajawal',sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;overflow:hidden;}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--s1);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;height:100vh;overflow-y:auto;}
+.sidebar-logo{padding:20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.logo-mark{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff;flex-shrink:0;}
+.logo-text{font-size:16px;font-weight:900;color:var(--text);}
+.logo-sub{font-size:10px;color:var(--text2);}
+.nav-section{padding:12px 10px 4px;}
+.nav-section-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;padding:0 6px;margin-bottom:4px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:all 0.15s;margin-bottom:2px;}
+.nav-item:hover{background:var(--s2);}
+.nav-item.active{background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.2);}
+.nav-icon{font-size:16px;width:24px;text-align:center;flex-shrink:0;}
+.nav-label{font-size:13px;font-weight:600;color:var(--text2);}
+.nav-item.active .nav-label{color:var(--accent);}
+.nav-badge{font-size:10px;font-weight:700;background:var(--red);color:#fff;padding:2px 7px;border-radius:20px;margin-right:auto;}
+.nav-badge.yellow{background:var(--yellow);}
+.sidebar-bottom{margin-top:auto;padding:12px 10px;border-top:1px solid var(--border);}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;height:100vh;}
+
+/* TOPBAR */
+.topbar{background:var(--s1);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.tb-left{display:flex;align-items:center;gap:12px;}
+.tb-page{font-size:16px;font-weight:800;}
+.tb-right{display:flex;align-items:center;gap:10px;}
+.tb-btn{width:36px;height:36px;background:var(--s2);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;position:relative;color:var(--text2);}
+.tb-btn:hover{border-color:var(--border2);}
+.notif-dot{position:absolute;top:5px;left:5px;width:7px;height:7px;background:var(--red);border-radius:50%;border:1.5px solid var(--s1);}
+.admin-ava{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;}
+
+/* CONTENT */
+.content-wrap{flex:1;overflow-y:auto;padding:20px 24px;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* STATS GRID */
+.stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px;}
+.stat-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;overflow:hidden;transition:border-color 0.2s;}
+.stat-card:hover{border-color:var(--border2);}
+.stat-accent{position:absolute;top:0;right:0;left:0;height:2px;}
+.stat-lbl{font-size:11px;color:var(--text2);margin-bottom:8px;font-weight:600;}
+.stat-val{font-family:var(--mono);font-size:24px;font-weight:700;line-height:1;}
+.stat-sub{font-size:10px;color:var(--text3);margin-top:5px;}
+.stat-ico{position:absolute;bottom:10px;left:12px;font-size:18px;opacity:0.1;}
+
+/* ALERTS */
+.alerts-box{background:var(--s1);border:1px solid var(--border);border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.alerts-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.alerts-title{font-size:13px;font-weight:700;}
+.alert-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(30,40,64,0.6);transition:background 0.1s;cursor:pointer;}
+.alert-item:hover{background:rgba(255,255,255,0.01);}
+.alert-item:last-child{border-bottom:none;}
+.alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.alert-text{flex:1;font-size:13px;}
+.alert-time{font-size:11px;color:var(--text3);font-family:var(--mono);}
+.alert-action{font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;}
+
+/* CARD */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+.card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:13px;font-weight:700;}
+.card-body{padding:16px 18px;}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:10px 16px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;background:var(--s2);border-bottom:1px solid var(--border);}
+td{padding:12px 16px;font-size:12px;color:var(--text);border-bottom:1px solid rgba(30,40,64,0.5);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,0.008);}
+
+/* TAGS */
+.tag{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.tag::before{content:'';width:5px;height:5px;border-radius:50%;}
+.tag-green{background:rgba(16,185,129,0.1);color:var(--green);}
+.tag-green::before{background:var(--green);}
+.tag-blue{background:rgba(59,130,246,0.1);color:var(--blue);}
+.tag-blue::before{background:var(--blue);animation:pulse 1.5s infinite;}
+.tag-yellow{background:rgba(245,158,11,0.1);color:var(--yellow);}
+.tag-yellow::before{background:var(--yellow);}
+.tag-red{background:rgba(239,68,68,0.1);color:var(--red);}
+.tag-red::before{background:var(--red);}
+.tag-purple{background:rgba(139,92,246,0.1);color:var(--purple);}
+.tag-purple::before{background:var(--purple);}
+.tag-gray{background:rgba(100,116,139,0.1);color:var(--text2);}
+.tag-gray::before{background:var(--text2);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* BTNS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;border:none;transition:all 0.15s;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent2);}
+.btn-ghost{background:var(--s2);color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{color:var(--text);border-color:var(--border2);}
+.btn-green{background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.3);}
+.btn-red{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.3);}
+.btn-yellow{background:rgba(245,158,11,0.1);color:var(--yellow);border:1px solid rgba(245,158,11,0.3);}
+.btn-sm{padding:5px 10px;font-size:11px;}
+
+/* FORM */
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;}
+.field input,.field select{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-family:var(--font);font-size:13px;color:var(--text);outline:none;transition:border-color 0.15s;}
+.field input:focus,.field select:focus{border-color:var(--accent);}
+.field input::placeholder{color:var(--text3);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+select.field option{background:var(--s2);}
+
+/* TABS */
+.tabs{display:flex;gap:3px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:3px;margin-bottom:16px;width:fit-content;}
+.tab{padding:7px 16px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;color:var(--text2);transition:all 0.15s;white-space:nowrap;}
+.tab.active{background:var(--s1);color:var(--text);border:1px solid var(--border2);}
+
+/* SEARCH */
+.search-box{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:7px 12px;}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:12px;width:160px;}
+.search-box input::placeholder{color:var(--text3);}
+
+/* PROGRESS */
+.prog-bar{height:5px;background:var(--s3);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:3px;}
+
+/* MAP */
+.map-area{background:var(--s2);border-radius:10px;height:280px;position:relative;overflow:hidden;margin-bottom:16px;}
+.map-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(99,102,241,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,0.04) 1px,transparent 1px);background-size:35px 35px;}
+.map-pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;}
+.map-pin-circle{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;border:2px solid rgba(255,255,255,0.2);box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.map-pin-tail{width:2px;height:6px;margin:0 auto;}
+.map-overlay-bar{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(14,18,32,0.9);padding:6px 16px;border-radius:20px;font-size:11px;color:var(--text2);border:1px solid var(--border);white-space:nowrap;}
+.map-dot{position:absolute;width:10px;height:10px;border-radius:50%;transform:translate(-50%,-50%);}
+
+/* INVOICE */
+.invoice-preview{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px;}
+.inv-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.inv-id{font-family:var(--mono);font-size:13px;color:var(--accent);}
+.inv-date{font-size:11px;color:var(--text3);font-family:var(--mono);}
+.inv-row{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid rgba(30,40,64,0.4);}
+.inv-row:last-child{border-bottom:none;}
+.inv-lbl{color:var(--text2);}
+.inv-val{font-weight:700;}
+.inv-total{background:rgba(99,102,241,0.06);border-radius:8px;padding:12px;text-align:center;margin:12px 0;}
+.inv-total-val{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--green);}
+
+/* INSURANCE FUND */
+.fund-box{background:linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.02));border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:18px;margin-bottom:16px;}
+.fund-amount{font-family:var(--mono);font-size:36px;font-weight:700;color:var(--accent);margin-bottom:4px;}
+.fund-lbl{font-size:12px;color:var(--text2);}
+
+/* LEGAL DOC */
+.doc-card{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.15s;}
+.doc-card:hover{border-color:var(--border2);}
+.doc-icon{font-size:22px;flex-shrink:0;}
+.doc-info{flex:1;}
+.doc-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+.doc-sub{font-size:11px;color:var(--text2);}
+.doc-qr{width:40px;height:40px;background:var(--s3);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+
+/* SCROLL */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--s1);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--s1);border:1px solid var(--border2);border-radius:14px;padding:24px;width:500px;max-width:100%;animation:modalIn 0.2s ease;max-height:90vh;overflow-y:auto;}
+@keyframes modalIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-title{font-size:17px;font-weight:800;margin-bottom:4px;}
+.modal-sub{font-size:12px;color:var(--text2);margin-bottom:18px;}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--border2);color:var(--text);padding:10px 22px;border-radius:100px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:opacity 0.2s;white-space:nowrap;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.toast.show{opacity:1;}
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/wassalni-api.js"></script>
+<script src="/wassalni-map.js"></script>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">W</div>
+    <div><div class="logo-text">وصّلني</div><div class="logo-sub">Super Admin</div></div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-lbl">الرئيسية</div>
+    <div class="nav-item active" onclick="goPage('p-dashboard',this)">
+      <div class="nav-icon">⚡</div><span class="nav-label">لوحة المؤشرات</span>
+    </div>
+    <div class="nav-item" onclick="goPage('p-map',this)">
+      <div class="nav-icon">🗺️</div><span class="nav-label">الخريطة الحية</span>
+    </div>
+    <div class="nav-item" onclick="goPage('p-alerts',this)">
+      <div class="nav-icon">🔔</div><span class="nav-label">التنبيهات</span>
+      <span class="nav-badge">7</span>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-lbl">المستخدمون</div>
+    <div class="nav-item" onclick="goPage('p-users',this)">
+      <div class="nav-icon">👥</div><span class="nav-label">إدارة المستخدمين</span>
+    </div>
+    <div class="nav-item" onclick="goPage('p-register',this)">
+      <div class="nav-icon">📝</div><span class="nav-label">طلبات التسجيل</span>
+      <span class="nav-badge yellow">3</span>
+    </div>
+    <div class="nav-item" onclick="goPage('p-plafond',this)">
+      <div class="nav-icon">🔴</div><span class="nav-label">البلافونات</span>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-lbl">العمليات</div>
+    <div class="nav-item" onclick="goPage('p-parcels',this)">
+      <div class="nav-icon">📦</div><span class="nav-label">تتبع الطرود</span>
+    </div>
+    <div class="nav-item" onclick="goPage('p-hubs',this)">
+      <div class="nav-icon">🏭</div><span class="nav-label">الهوبات</span>
+    </div>
+    <div class="nav-item" onclick="goPage('p-disputes',this)">
+      <div class="nav-icon">⚖️</div><span class="nav-label">النزاعات</span>
+      <span class="nav-badge">2</span>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-lbl">المالية</div>
+    <div class="nav-item" onclick="goPage('p-billing',this)">
+      <div class="nav-icon">🧾</div><span class="nav-label">نظام الفوترة</span>
+    </div>
+    <div class="nav-item" onclick="goPage('p-insurance',this)">
+      <div class="nav-icon">🛡️</div><span class="nav-label">صندوق التأمين</span>
+    </div>
+    <div class="nav-item" onclick="goPage('p-merchant-pay',this)">
+      <div class="nav-icon">💸</div><span class="nav-label">خلاص التجار</span>
+    </div>
+    <div class="nav-item" onclick="goPage('p-reports',this)">
+      <div class="nav-icon">📊</div><span class="nav-label">التقارير</span>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-lbl">النظام</div>
+    <div class="nav-item" onclick="goPage('p-legal',this)">
+      <div class="nav-icon">📋</div><span class="nav-label">الوثائق القانونية</span>
+    </div>
+    <div class="nav-item" onclick="goPage('p-zones',this)">
+      <div class="nav-icon">🗺️</div><span class="nav-label">المناطق والأسعار</span>
+    </div>
+    <div class="nav-item" onclick="goPage('p-notif',this)">
+      <div class="nav-icon">📱</div><span class="nav-label">الإشعارات</span>
+    </div>
+  </div>
+
+  <div class="sidebar-bottom">
+    <div class="nav-item">
+      <div class="nav-icon">⚙️</div><span class="nav-label">الإعدادات</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="tb-page" id="page-title">لوحة المؤشرات</div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-btn">🔔<div class="notif-dot"></div></div>
+      <div class="tb-btn">📊</div>
+      <div class="admin-ava">👤</div>
+    </div>
+  </div>
+
+  <div class="content-wrap">
+
+  <!-- ══ PAGE: DASHBOARD ══ -->
+  <div class="page active" id="p-dashboard">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-accent" style="background:var(--green)"></div><div class="stat-lbl">توصيلات اليوم</div><div class="stat-val" style="color:var(--green)" id="kpi-delivered">—</div><div class="stat-sub">توصيلات</div><div class="stat-ico">✅</div></div>
+      <div class="stat-card"><div class="stat-accent" style="background:var(--blue)"></div><div class="stat-lbl">طرود نشطة</div><div class="stat-val" style="color:var(--blue)" id="kpi-parcels">—</div><div class="stat-sub">طرود نشطة</div><div class="stat-ico">📦</div></div>
+      <div class="stat-card"><div class="stat-accent" style="background:var(--yellow)"></div><div class="stat-lbl">ناقلون نشطون</div><div class="stat-val" style="color:var(--yellow)" id="kpi-users">—</div><div class="stat-sub">مستخدمون نشطون</div><div class="stat-ico">🚗</div></div>
+      <div class="stat-card"><div class="stat-accent" style="background:var(--accent)"></div><div class="stat-lbl">إيرادات الشهر</div><div class="stat-val" style="color:var(--accent)" id="kpi-revenue">—</div><div class="stat-sub">إيرادات DT</div><div class="stat-ico">💰</div></div>
+      <div class="stat-card"><div class="stat-accent" style="background:var(--red)"></div><div class="stat-lbl">المرتجعات</div><div class="stat-val" style="color:var(--red)" id="kpi-returns">—</div><div class="stat-sub">مرتجعات</div><div class="stat-ico">↩️</div></div>
+      <div class="stat-card"><div class="stat-accent" style="background:var(--purple)"></div><div class="stat-lbl">صندوق التأمين</div><div class="stat-val" style="color:var(--purple)" id="kpi-insurance">—</div><div class="stat-sub">صندوق DT</div><div class="stat-ico">🛡️</div></div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="alerts-box">
+      <div class="alerts-header">
+        <span class="alerts-title">🔔 تنبيهات عاجلة</span>
+        <span style="font-size:11px;color:var(--text2)">7 تنبيه جديد</span>
+      </div>
+      <div class="alert-item" onclick="openModal('modal-plafond-req')">
+        <div class="alert-dot" style="background:var(--red)"></div>
+        <div class="alert-text">🔴 بلال شكير — طلب رفع سقف من 1000 إلى 1500 DT</div>
+        <div class="alert-time">منذ 5 دق</div>
+        <div class="alert-action">معالجة</div>
+      </div>
+      <div class="alert-item" onclick="openModal('modal-register-req')">
+        <div class="alert-dot" style="background:var(--yellow)"></div>
+        <div class="alert-text">📝 ترانسبورتور جديد — أمين الرحالي — ينتظر موافقة التسجيل</div>
+        <div class="alert-time">منذ 18 دق</div>
+        <div class="alert-action">مراجعة</div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-dot" style="background:var(--blue)"></div>
+        <div class="alert-text">📦 طرد #WS-00712 — في عهدة هوب تونس 3 منذ 72 ساعة — إرجاع تلقائي مُفعَّل</div>
+        <div class="alert-time">منذ 1 سا</div>
+        <div class="alert-action">عرض</div>
+      </div>
+      <div class="alert-item" onclick="openModal('modal-dispute')">
+        <div class="alert-dot" style="background:var(--orange)"></div>
+        <div class="alert-text">⚖️ نزاع — طرد #WS-00654 مفقود — آخر سكان: كريم المنصوري</div>
+        <div class="alert-time">منذ 2 سا</div>
+        <div class="alert-action">تحقيق</div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-dot" style="background:var(--yellow)"></div>
+        <div class="alert-text">🏭 هوب سوسة 2 — وصل 91% من البلافون (4,550 / 5,000 DT)</div>
+        <div class="alert-time">منذ 3 سا</div>
+        <div class="alert-action">رفع</div>
+      </div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><span class="card-title">📦 آخر الطرود</span></div>
+        <div class="card-body" style="padding:0">
+          <table><thead><tr><th>الطرد</th><th>التاجر</th><th>المدينة</th><th>الحالة</th><th>COD</th></tr></thead>
+          <tbody id="recent-parcels-body"><tr><td colspan="5" style="text-align:center;opacity:0.5;padding:16px">⏳ جاري التحميل...</td></tr></tbody></table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-title">🏆 أفضل ليفرورات اليوم</span></div>
+        <div class="card-body" style="padding:0">
+          <table>
+            <thead><tr><th>الاسم</th><th>طرود</th><th>نجاح</th><th>تقييم</th></tr></thead>
+            <tbody id="top-livreurs-body">
+              <tr><td>بلال شكير</td><td style="font-family:var(--mono)">24</td><td><span class="tag tag-green">94%</span></td><td style="font-family:var(--mono);color:var(--yellow)">4.9⭐</td></tr>
+              <tr><td>سمير العلوي</td><td style="font-family:var(--mono)">19</td><td><span class="tag tag-green">89%</span></td><td style="font-family:var(--mono);color:var(--yellow)">4.7⭐</td></tr>
+              <tr><td>كريم المنصوري</td><td style="font-family:var(--mono)">17</td><td><span class="tag tag-yellow">78%</span></td><td style="font-family:var(--mono);color:var(--yellow)">4.5⭐</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: USERS ══ -->
+  <div class="page" id="p-users">
+    <div class="tabs">
+      <div class="tab active" onclick="utab(this,'ut-merchants')">🏪 تجار (48)</div>
+      <div class="tab" onclick="utab(this,'ut-livreurs')">🛵 ليفرورات (23)</div>
+      <div class="tab" onclick="utab(this,'ut-trans')">🚗 ترانسبورتور (61)</div>
+      <div class="tab" onclick="utab(this,'ut-hubs')">🏭 هوبات (12)</div>
+    </div>
+    <div id="ut-merchants">
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">التجار النشطون</span>
+          <div style="display:flex;gap:8px"><div class="search-box">🔍<input placeholder="بحث..."></div><button class="btn btn-primary" onclick="openModal('modal-add-user')">+ إضافة</button></div>
+        </div>
+        <table>
+          <thead><tr><th>الاسم</th><th>الولاية</th><th>الطرود</th><th>الرصيد</th><th>الحالة</th><th>إجراء</th></tr></thead>
+          <tbody>
+            <tr><td>شركة الأهرام للتجارة</td><td>تونس</td><td style="font-family:var(--mono)">342</td><td style="font-family:var(--mono);color:var(--green)">4,820 DT</td><td><span class="tag tag-green">نشط</span></td><td><div style="display:flex;gap:4px"><button class="btn btn-ghost btn-sm">تعديل</button><button class="btn btn-yellow btn-sm" onclick="openModal('modal-merchant-pay')">خلاص</button></div></td></tr>
+            <tr><td>متجر الياسمين</td><td>نابل</td><td style="font-family:var(--mono)">89</td><td style="font-family:var(--mono);color:var(--green)">1,240 DT</td><td><span class="tag tag-green">نشط</span></td><td><div style="display:flex;gap:4px"><button class="btn btn-ghost btn-sm">تعديل</button><button class="btn btn-yellow btn-sm" onclick="openModal('modal-merchant-pay')">خلاص</button></div></td></tr>
+            <tr><td>بوتيك سمر</td><td>سوسة</td><td style="font-family:var(--mono)">201</td><td style="font-family:var(--mono);color:var(--yellow)">890 DT</td><td><span class="tag tag-gray">موقوف</span></td><td><div style="display:flex;gap:4px"><button class="btn btn-green btn-sm">تفعيل</button><button class="btn btn-yellow btn-sm">خلاص</button></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="ut-livreurs" style="display:none">
+      <div class="card">
+        <div class="card-head"><span class="card-title">الليفرورات</span><button class="btn btn-primary">+ إضافة</button></div>
+        <table>
+          <thead><tr><th>الاسم</th><th>المنطقة</th><th>المستوى</th><th>البلافون</th><th>الكاش</th><th>الحالة</th><th>إجراء</th></tr></thead>
+          <tbody>
+            <tr><td>بلال شكير</td><td>تونس الكبرى</td><td><span class="tag tag-blue">⭐ محترف</span></td><td style="font-family:var(--mono)">1000 DT</td><td style="font-family:var(--mono);color:var(--green)">340 DT</td><td><span class="tag tag-green">نشط</span></td><td><div style="display:flex;gap:4px"><button class="btn btn-ghost btn-sm" onclick="openModal('modal-plafond-edit')">بلافون</button><button class="btn btn-yellow btn-sm" onclick="openModal('modal-pay-livreur')">خلاص</button><button class="btn btn-red btn-sm">إيقاف</button></div></td></tr>
+            <tr><td>كريم المنصوري</td><td>نابل</td><td><span class="tag tag-green">🟢 موثوق</span></td><td style="font-family:var(--mono)">500 DT</td><td style="font-family:var(--mono);color:var(--yellow)">420 DT</td><td><span class="tag tag-green">نشط</span></td><td><div style="display:flex;gap:4px"><button class="btn btn-ghost btn-sm" onclick="openModal('modal-plafond-edit')">بلافون</button><button class="btn btn-yellow btn-sm" onclick="openModal('modal-pay-livreur')">خلاص</button></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="ut-trans" style="display:none">
+      <div class="card">
+        <div class="card-head"><span class="card-title">الترانسبورتور</span></div>
+        <table>
+          <thead><tr><th>الاسم</th><th>المسار المعتاد</th><th>رحلات</th><th>الرصيد</th><th>الحالة</th><th>إجراء</th></tr></thead>
+          <tbody>
+            <tr><td>أمين الرحالي</td><td>الهوارية ↔ تونس</td><td style="font-family:var(--mono)">47</td><td style="font-family:var(--mono);color:var(--green)">57 DT</td><td><span class="tag tag-blue">في الطريق</span></td><td><div style="display:flex;gap:4px"><button class="btn btn-yellow btn-sm" onclick="openModal('modal-pay-trans')">خلاص</button></div></td></tr>
+            <tr><td>محمد الشابي</td><td>قليبية ↔ سوسة</td><td style="font-family:var(--mono)">32</td><td style="font-family:var(--mono);color:var(--green)">34 DT</td><td><span class="tag tag-gray">غير نشط</span></td><td><div style="display:flex;gap:4px"><button class="btn btn-yellow btn-sm">خلاص</button></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="ut-hubs" style="display:none">
+      <div class="card">
+        <div class="card-head"><span class="card-title">الهوبات</span><button class="btn btn-primary">+ هوب جديد</button></div>
+        <table>
+          <thead><tr><th>الاسم</th><th>الولاية</th><th>الطرود</th><th>الرصيد</th><th>البلافون</th><th>الحالة</th><th>إجراء</th></tr></thead>
+          <tbody>
+            <tr><td>هوب تونس 4</td><td>تونس الكبرى</td><td style="font-family:var(--mono)">143</td><td style="font-family:var(--mono);color:var(--green)">1,240 DT</td><td style="font-family:var(--mono)">1,500 DT</td><td><span class="tag tag-green">🟢 مفتوح</span></td><td><div style="display:flex;gap:4px"><button class="btn btn-ghost btn-sm" onclick="openModal('modal-plafond-edit')">بلافون</button><button class="btn btn-yellow btn-sm">خلاص</button></div></td></tr>
+            <tr><td>هوب سوسة 2</td><td>سوسة</td><td style="font-family:var(--mono)">89</td><td style="font-family:var(--mono);color:var(--yellow)">4,550 DT</td><td style="font-family:var(--mono)">5,000 DT</td><td><span class="tag tag-green">🟢 مفتوح</span></td><td><div style="display:flex;gap:4px"><button class="btn btn-ghost btn-sm">بلافون</button><button class="btn btn-yellow btn-sm">خلاص</button></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: REGISTER REQUESTS ══ -->
+  <div class="page" id="p-register">
+    <div class="card">
+      <div class="card-head"><span class="card-title">📝 طلبات التسجيل الجديدة</span><span style="font-size:12px;color:var(--text2)">3 طلبات في الانتظار</span></div>
+      <table>
+        <thead><tr><th>الاسم</th><th>النوع</th><th>الولاية</th><th>تاريخ الطلب</th><th>الوثائق</th><th>إجراء</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>أمين الرحالي</td>
+            <td><span class="tag tag-purple">ترانسبورتور</span></td>
+            <td>الهوارية</td>
+            <td style="font-family:var(--mono);font-size:11px">28/01/2025</td>
+            <td><span class="tag tag-green">✅ مكتملة</span></td>
+            <td>
+              <div style="display:flex;gap:4px">
+                <button class="btn btn-ghost btn-sm" onclick="openModal('modal-view-docs')">عرض</button>
+                <button class="btn btn-green btn-sm" onclick="approveReg()">موافقة</button>
+                <button class="btn btn-red btn-sm">رفض</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>سمير الهادي</td>
+            <td><span class="tag tag-green">ليفرور</span></td>
+            <td>سوسة</td>
+            <td style="font-family:var(--mono);font-size:11px">27/01/2025</td>
+            <td><span class="tag tag-yellow">⚠️ ناقصة</span></td>
+            <td>
+              <div style="display:flex;gap:4px">
+                <button class="btn btn-ghost btn-sm">عرض</button>
+                <button class="btn btn-yellow btn-sm">طلب وثيقة</button>
+                <button class="btn btn-red btn-sm">رفض</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: BILLING ══ -->
+  <div class="page" id="p-billing">
+    <div class="tabs">
+      <div class="tab active" onclick="btab(this,'bt-all')">📋 الكل</div>
+      <div class="tab" onclick="btab(this,'bt-merchants')">🏪 تجار</div>
+      <div class="tab" onclick="btab(this,'bt-livreurs')">🛵 ليفرورات</div>
+      <div class="tab" onclick="btab(this,'bt-trans')">🚗 ترانسبورتور</div>
+      <div class="tab" onclick="btab(this,'bt-hubs')">🏭 هوبات</div>
+    </div>
+    <div id="bt-all">
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">🧾 سجل الفواتير</span>
+          <div style="display:flex;gap:8px"><div class="search-box">🔍<input placeholder="بحث برقم الفاتورة..."></div><button class="btn btn-primary" onclick="openModal('modal-invoice-preview')">+ فاتورة جديدة</button></div>
+        </div>
+        <table>
+          <thead><tr><th>رقم الفاتورة</th><th>المستفيد</th><th>النوع</th><th>المبلغ</th><th>التاريخ</th><th>الحالة</th><th>إجراء</th></tr></thead>
+          <tbody>
+            <tr><td style="font-family:var(--mono);color:var(--accent)">#INV-2025-047</td><td>شركة الأهرام</td><td><span class="tag tag-blue">تاجر</span></td><td style="font-family:var(--mono);color:var(--green)">540 DT</td><td style="font-family:var(--mono);font-size:11px">28/01 10:34</td><td><span class="tag tag-green">مدفوعة</span></td><td><button class="btn btn-ghost btn-sm" onclick="openModal('modal-invoice-preview')">عرض</button></td></tr>
+            <tr><td style="font-family:var(--mono);color:var(--accent)">#INV-2025-046</td><td>بلال شكير</td><td><span class="tag tag-green">ليفرور</span></td><td style="font-family:var(--mono);color:var(--green)">180 DT</td><td style="font-family:var(--mono);font-size:11px">28/01 09:15</td><td><span class="tag tag-green">مدفوعة</span></td><td><button class="btn btn-ghost btn-sm" onclick="openModal('modal-invoice-preview')">عرض</button></td></tr>
+            <tr><td style="font-family:var(--mono);color:var(--accent)">#INV-2025-045</td><td>هوب تونس 4</td><td><span class="tag tag-yellow">هوب</span></td><td style="font-family:var(--mono);color:var(--yellow)">1,240 DT</td><td style="font-family:var(--mono);font-size:11px">27/01 18:00</td><td><span class="tag tag-yellow">انتظار</span></td><td><button class="btn btn-ghost btn-sm">عرض</button></td></tr>
+            <tr><td style="font-family:var(--mono);color:var(--accent)">#INV-2025-044</td><td>أمين الرحالي</td><td><span class="tag tag-purple">ترانسبورتور</span></td><td style="font-family:var(--mono);color:var(--green)">57 DT</td><td style="font-family:var(--mono);font-size:11px">27/01 16:30</td><td><span class="tag tag-green">مدفوعة</span></td><td><button class="btn btn-ghost btn-sm">عرض</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="bt-merchants" style="display:none"><div class="card"><div class="card-head"><span class="card-title">فواتير التجار</span></div><table><thead><tr><th>التاجر</th><th>الفترة</th><th>الطرود</th><th>المبلغ</th><th>الحالة</th></tr></thead><tbody><tr><td>شركة الأهرام</td><td style="font-family:var(--mono);font-size:11px">يناير 2025</td><td style="font-family:var(--mono)">342</td><td style="font-family:var(--mono);color:var(--green)">3,078 DT</td><td><span class="tag tag-yellow">انتظار</span></td></tr></tbody></table></div></div>
+    <div id="bt-livreurs" style="display:none"><div class="card"><div class="card-head"><span class="card-title">خلاص الليفرورات</span></div><table><thead><tr><th>الليفرور</th><th>طرود</th><th>عمولة</th><th>الحالة</th></tr></thead><tbody><tr><td>بلال شكير</td><td style="font-family:var(--mono)">127</td><td style="font-family:var(--mono);color:var(--green)">190.5 DT</td><td><span class="tag tag-green">مدفوع</span></td></tr></tbody></table></div></div>
+    <div id="bt-trans" style="display:none"><div class="card"><div class="card-head"><span class="card-title">خلاص الترانسبورتور</span></div><table><thead><tr><th>الترانسبورتور</th><th>رحلات</th><th>عمولة</th><th>الحالة</th></tr></thead><tbody><tr><td>أمين الرحالي</td><td style="font-family:var(--mono)">47</td><td style="font-family:var(--mono);color:var(--green)">57 DT</td><td><span class="tag tag-green">مدفوع</span></td></tr></tbody></table></div></div>
+    <div id="bt-hubs" style="display:none"><div class="card"><div class="card-head"><span class="card-title">خلاص الهوبات</span></div><table><thead><tr><th>الهوب</th><th>طرود</th><th>عمولة</th><th>الرصيد الكلي</th><th>الحالة</th></tr></thead><tbody><tr><td>هوب تونس 4</td><td style="font-family:var(--mono)">143</td><td style="font-family:var(--mono);color:var(--green)">71.5 DT</td><td style="font-family:var(--mono);color:var(--yellow)">1,240 DT</td><td><span class="tag tag-yellow">انتظار</span></td></tr></tbody></table></div></div>
+  </div>
+
+  <!-- ══ PAGE: INSURANCE ══ -->
+  <div class="page" id="p-insurance">
+    <div class="fund-box">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:6px">🛡️ صندوق التأمين الداخلي</div>
+      <div class="fund-amount">4,820.000 DT</div>
+      <div class="fund-lbl">اقتطاع 0.200 DT × 24,100 كولي منذ الإطلاق</div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><span class="card-title">📊 حركة الصندوق</span></div>
+        <div class="card-body" style="padding:0">
+          <table>
+            <thead><tr><th>العملية</th><th>المبلغ</th><th>التاريخ</th><th>السبب</th></tr></thead>
+            <tbody>
+              <tr><td><span class="tag tag-green">اقتطاع</span></td><td style="font-family:var(--mono);color:var(--green)">+0.200 DT</td><td style="font-family:var(--mono);font-size:11px">الآن</td><td>كولي #WS-01247</td></tr>
+              <tr><td><span class="tag tag-red">تعويض</span></td><td style="font-family:var(--mono);color:var(--red)">-85 DT</td><td style="font-family:var(--mono);font-size:11px">25/01</td><td>طرد مفقود #WS-00654</td></tr>
+              <tr><td><span class="tag tag-green">اقتطاع</span></td><td style="font-family:var(--mono);color:var(--green)">+0.200 DT</td><td style="font-family:var(--mono);font-size:11px">25/01</td><td>كولي #WS-01246</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-title">⚖️ طلبات تعويض</span><button class="btn btn-primary btn-sm" onclick="openModal('modal-compensation')">+ تعويض</button></div>
+        <div class="card-body" style="padding:0">
+          <table>
+            <thead><tr><th>الطرد</th><th>المبلغ</th><th>السبب</th><th>الحالة</th></tr></thead>
+            <tbody>
+              <tr><td style="font-family:var(--mono);font-size:11px">#WS-00654</td><td style="font-family:var(--mono);color:var(--red)">85 DT</td><td>مفقود — آخر سكان: كريم</td><td><span class="tag tag-green">مُعوَّض</span></td></tr>
+              <tr><td style="font-family:var(--mono);font-size:11px">#WS-00521</td><td style="font-family:var(--mono);color:var(--yellow)">120 DT</td><td>نزاع COD</td><td><span class="tag tag-yellow">قيد المراجعة</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: MERCHANT PAY ══ -->
+  <div class="page" id="p-merchant-pay">
+    <div class="card">
+      <div class="card-head"><span class="card-title">💸 إصدار كودات خلاص التجار</span><button class="btn btn-primary" onclick="openModal('modal-merchant-pay')">+ إصدار كود جديد</button></div>
+      <div class="card-body" style="padding:0">
+        <table>
+          <thead><tr><th>التاجر</th><th>المبلغ</th><th>الكود</th><th>الصلاحية</th><th>الحالة</th><th>الهوب</th></tr></thead>
+          <tbody>
+            <tr><td>شركة الأهرام</td><td style="font-family:var(--mono);color:var(--green)">540 DT</td><td style="font-family:var(--mono);color:var(--accent)">AH7X2K</td><td style="font-family:var(--mono);font-size:11px;color:var(--green)">18 سا متبقية</td><td><span class="tag tag-yellow">لم يُستخدم</span></td><td>هوب تونس 4</td></tr>
+            <tr><td>متجر الياسمين</td><td style="font-family:var(--mono);color:var(--green)">240 DT</td><td style="font-family:var(--mono);color:var(--text3)">YS3M9P</td><td style="font-family:var(--mono);font-size:11px;color:var(--red)">منتهي</td><td><span class="tag tag-green">مُستخدم ✓</span></td><td>هوب نابل 1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: LEGAL DOCS ══ -->
+  <div class="page" id="p-legal">
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">وثائق رقمية لكل ناقل — تُعرض عند الدوريات الأمنية والديوانية. تحتوي على QR للتحقق الفوري.</div>
+    <div class="g2">
+      <div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text2)">🛵 ليفرورات نشطون</div>
+        <div class="doc-card" onclick="openModal('modal-legal-doc')">
+          <div class="doc-icon">📋</div>
+          <div class="doc-info">
+            <div class="doc-name">بلال شكير — ليفرور</div>
+            <div class="doc-sub">8 طرود في العهدة · تونس الكبرى · نشط منذ 07:45</div>
+          </div>
+          <div class="doc-qr">▌▌</div>
+        </div>
+        <div class="doc-card" onclick="openModal('modal-legal-doc')">
+          <div class="doc-icon">📋</div>
+          <div class="doc-info">
+            <div class="doc-name">كريم المنصوري — ليفرور</div>
+            <div class="doc-sub">5 طرود في العهدة · نابل · نشط منذ 08:10</div>
+          </div>
+          <div class="doc-qr">▌▌</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text2)">🚗 ترانسبورتور في الطريق</div>
+        <div class="doc-card" onclick="openModal('modal-legal-doc')">
+          <div class="doc-icon">📋</div>
+          <div class="doc-info">
+            <div class="doc-name">أمين الرحالي — ترانسبورتور</div>
+            <div class="doc-sub">3 طرود · الهوارية → تونس · منذ 08:00</div>
+          </div>
+          <div class="doc-qr">▌▌</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">محتوى الوثيقة القانونية</span></div>
+      <div class="card-body">
+        <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:12px;line-height:1.8;color:var(--text2)">
+          <strong style="color:var(--text)">وثيقة ناقل — منصة وصّلني</strong><br>
+          رقم الترخيص: WS-LIC-2025-0047<br>
+          اسم الناقل: بلال شكير<br>
+          رقم الهوية: 12345678<br>
+          نوع الخدمة: ليفرور معتمد<br>
+          المنطقة: تونس الكبرى<br><br>
+          <strong style="color:var(--text)">الطرود في العهدة (8 طرود):</strong><br>
+          #WS-00847 · من: شركة الأهرام · إلى: محمد علي · تونس<br>
+          #WS-00843 · من: متجر الياسمين · إلى: عمر الشابي · تونس<br>
+          ... (6 طرود أخرى)<br><br>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+            <div style="background:var(--s3);border-radius:6px;padding:8px;font-size:20px">▌║▌║▌▌</div>
+            <div style="font-size:11px;color:var(--text3)">امسح QR للتحقق الفوري من صحة الوثيقة عبر منظومة وصّلني</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: ZONES ══ -->
+  <div class="page" id="p-zones">
+    <div class="card">
+      <div class="card-head"><span class="card-title">🗺️ المناطق وقواعد التوزيع</span><button class="btn btn-primary">+ منطقة</button></div>
+      <div class="card-body" style="padding:0">
+        <table>
+          <thead><tr><th>المنطقة</th><th>الولايات</th><th>سعر النقل</th><th>المنصة</th><th>الهوب</th><th>إجراء</th></tr></thead>
+          <tbody>
+            <tr><td><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:var(--blue);display:inline-block"></span>تونس الكبرى</span></td><td style="font-size:11px;color:var(--text2)">تونس، أريانة، بن عروس، منوبة</td><td style="font-family:var(--mono);color:var(--accent)">9 DT</td><td style="font-family:var(--mono)">2 DT</td><td style="font-family:var(--mono)">0.5 DT</td><td><button class="btn btn-ghost btn-sm">تعديل</button></td></tr>
+            <tr><td><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:var(--green);display:inline-block"></span>الشمال الشرقي</span></td><td style="font-size:11px;color:var(--text2)">نابل، قليبية، الهوارية</td><td style="font-family:var(--mono);color:var(--accent)">9 DT</td><td style="font-family:var(--mono)">2 DT</td><td style="font-family:var(--mono)">0.5 DT</td><td><button class="btn btn-ghost btn-sm">تعديل</button></td></tr>
+            <tr><td><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:var(--yellow);display:inline-block"></span>الوسط</span></td><td style="font-size:11px;color:var(--text2)">سوسة، المنستير، المهدية</td><td style="font-family:var(--mono);color:var(--accent)">9 DT</td><td style="font-family:var(--mono)">2 DT</td><td style="font-family:var(--mono)">0.5 DT</td><td><button class="btn btn-ghost btn-sm">تعديل</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">⚖️ قاعدة توزيع العمولة</span></div>
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;text-align:center">
+          <div style="background:var(--s2);border-radius:10px;padding:12px"><div style="font-size:10px;color:var(--text2);margin-bottom:6px">المنصة</div><div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--red)">2 DT</div></div>
+          <div style="background:var(--s2);border-radius:10px;padding:12px"><div style="font-size:10px;color:var(--text2);margin-bottom:6px">صندوق التأمين</div><div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--purple)">0.2 DT</div></div>
+          <div style="background:var(--s2);border-radius:10px;padding:12px"><div style="font-size:10px;color:var(--text2);margin-bottom:6px">كل هوب</div><div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--yellow)">0.5 DT</div></div>
+          <div style="background:var(--s2);border-radius:10px;padding:12px"><div style="font-size:10px;color:var(--text2);margin-bottom:6px">ليفرور جلب</div><div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--blue)">1 DT</div></div>
+          <div style="background:var(--s2);border-radius:10px;padding:12px"><div style="font-size:10px;color:var(--text2);margin-bottom:6px">الباقي</div><div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--green)">متغير</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: NOTIFICATIONS ══ -->
+  <div class="page" id="p-notif">
+    <div class="card">
+      <div class="card-head"><span class="card-title">📱 إرسال إشعار</span></div>
+      <div class="card-body">
+        <div class="field"><label>المستلِم</label><select><option>الكل</option><option>التجار فقط</option><option>الليفرورات فقط</option><option>الترانسبورتور فقط</option><option>الهوبات فقط</option><option>مستخدم محدد</option></select></div>
+        <div class="field"><label>قناة الإرسال</label>
+          <div style="display:flex;gap:10px;margin-top:6px">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" checked style="accent-color:var(--accent)"> 📱 إشعار التطبيق</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" checked style="accent-color:var(--accent)"> 💬 واتساب</label>
+          </div>
+        </div>
+        <div class="field"><label>نص الإشعار</label><textarea style="width:100%;background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:10px 12px;font-family:var(--font);font-size:13px;color:var(--text);outline:none;resize:none;height:80px" placeholder="اكتب نص الإشعار..."></textarea></div>
+        <button class="btn btn-primary" onclick="sendNotification()">📤 إرسال</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">📋 سجل الإشعارات</span></div>
+      <div class="card-body" style="padding:0">
+        <table>
+          <thead><tr><th>النص</th><th>المستلِم</th><th>القناة</th><th>التاريخ</th></tr></thead>
+          <tbody>
+            <tr><td>طرد #WS-00847 في الطريق إليك</td><td>محمد علي</td><td>📱 + 💬</td><td style="font-family:var(--mono);font-size:11px">28/01 09:42</td></tr>
+            <tr><td>وصل رصيدك 80% من السقف</td><td>بلال شكير</td><td>📱 + 💬</td><td style="font-family:var(--mono);font-size:11px">28/01 08:30</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: PLAFOND ══ -->
+  <div class="page" id="p-plafond">
+    <div class="card">
+      <div class="card-head"><span class="card-title">🔴 طلبات رفع السقف</span></div>
+      <div class="card-body" style="padding:0">
+        <table>
+          <thead><tr><th>الناقل</th><th>البلافون الحالي</th><th>المطلوب</th><th>الكاش الحالي</th><th>السبب</th><th>إجراء</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>بلال شكير</td>
+              <td style="font-family:var(--mono)">1,000 DT</td>
+              <td style="font-family:var(--mono);color:var(--yellow)">1,500 DT</td>
+              <td style="font-family:var(--mono);color:var(--red)">980 DT</td>
+              <td style="font-size:11px">يوم مكثف</td>
+              <td><div style="display:flex;gap:4px"><button class="btn btn-green btn-sm" onclick="showToast('✅ تم رفع السقف لـ 1,500 DT')">موافقة</button><button class="btn btn-red btn-sm">رفض</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">⚙️ البلافونات الافتراضية</span></div>
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div style="background:var(--s2);border-radius:10px;padding:14px"><div style="font-size:11px;color:var(--yellow);margin-bottom:6px">🟡 مستوى 1</div><div style="font-family:var(--mono);font-size:20px;font-weight:700">200 DT</div><div style="font-size:11px;color:var(--text3);margin-top:3px">3 كوليات max</div></div>
+          <div style="background:var(--s2);border-radius:10px;padding:14px"><div style="font-size:11px;color:var(--green);margin-bottom:6px">🟢 مستوى 2</div><div style="font-family:var(--mono);font-size:20px;font-weight:700">500 DT</div><div style="font-size:11px;color:var(--text3);margin-top:3px">7 كوليات max</div></div>
+          <div style="background:var(--s2);border-radius:10px;padding:14px"><div style="font-size:11px;color:var(--accent);margin-bottom:6px">⭐ مستوى 3</div><div style="font-family:var(--mono);font-size:20px;font-weight:700">1,000 DT</div><div style="font-size:11px;color:var(--text3);margin-top:3px">15 كوليات max</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ OTHER PAGES ══ -->
+  <div class="page" id="p-map">
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">🗺️ خريطة حية — الناقلون النشطون</span>
+      <button class="btn btn-ghost btn-sm" onclick="refreshAdminMap()">🔄 تحديث</button>
+    </div>
+    <div id="admin-map" style="height:450px;border-radius:0 0 12px 12px;"></div>
+  </div>
+  <div class="g2" style="margin-top:16px">
+    <div class="card">
+      <div class="card-head"><span class="card-title">🛵 ليفرورات نشطون</span></div>
+      <div class="card-body" style="padding:0">
+        <table><thead><tr><th>الاسم</th><th>طرود</th><th>آخر تحديث</th></tr></thead>
+        <tbody id="map-livreurs-body"><tr><td colspan="3" style="text-align:center;opacity:0.5;padding:12px">جاري التحميل...</td></tr></tbody></table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">🚗 ترانسبورتور نشطون</span></div>
+      <div class="card-body" style="padding:0">
+        <table><thead><tr><th>الاسم</th><th>طرود</th><th>آخر تحديث</th></tr></thead>
+        <tbody id="map-trans-body"><tr><td colspan="3" style="text-align:center;opacity:0.5;padding:12px">جاري التحميل...</td></tr></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+  <div class="page" id="p-alerts"><div class="card"><div class="card-head"><span class="card-title">🔔 كل التنبيهات</span></div><div class="card-body" style="padding:0"><table><thead><tr><th>النوع</th><th>التفصيل</th><th>الوقت</th><th>إجراء</th></tr></thead><tbody><tr><td><span class="tag tag-red">عاجل</span></td><td>بلال شكير — طلب رفع سقف</td><td style="font-family:var(--mono);font-size:11px">منذ 5 دق</td><td><button class="btn btn-primary btn-sm" onclick="openModal('modal-plafond-req')">معالجة</button></td></tr><tr><td><span class="tag tag-yellow">تنبيه</span></td><td>ترانسبورتور جديد ينتظر موافقة</td><td style="font-family:var(--mono);font-size:11px">منذ 18 دق</td><td><button class="btn btn-primary btn-sm" onclick="openModal('modal-register-req')">مراجعة</button></td></tr><tr><td><span class="tag tag-blue">معلومة</span></td><td>طرد #WS-00712 إرجاع تلقائي مُفعَّل</td><td style="font-family:var(--mono);font-size:11px">منذ 1 سا</td><td><button class="btn btn-ghost btn-sm">عرض</button></td></tr></tbody></table></div></div></div>
+  <div class="page" id="p-parcels">
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">📦 تتبع الطرود</span>
+      <div style="display:flex;gap:8px">
+        <select id="parcel-status-filter" onchange="loadAdminParcels()" style="background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-family:var(--font);font-size:12px;color:var(--text);outline:none">
+          <option value="">الكل</option>
+          <option value="created">تم الإنشاء</option>
+          <option value="pickup">استلام</option>
+          <option value="transit">في الطريق</option>
+          <option value="hub">في هوب</option>
+          <option value="delivery">للتسليم</option>
+          <option value="delivered">تم التسليم</option>
+          <option value="return">مرتجع</option>
+        </select>
+        <div class="search-box">🔍<input id="parcel-search" placeholder="ابحث..." oninput="filterParcelsTable(this.value)"></div>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0">
+      <table>
+        <thead><tr><th>رقم الطرد</th><th>التاجر</th><th>الزبون</th><th>المدينة</th><th>في عهدة</th><th>الحالة</th><th>COD</th><th>التاريخ</th></tr></thead>
+        <tbody id="admin-parcels-body"><tr><td colspan="8" style="text-align:center;opacity:0.5;padding:16px">⏳ جاري التحميل...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+  <div class="page" id="p-hubs">
+  <div class="card">
+    <div class="card-head"><span class="card-title">🏭 إدارة الهوبات</span></div>
+    <div class="card-body" style="padding:0">
+      <table>
+        <thead><tr><th>الهوب</th><th>المدينة</th><th>الهاتف</th><th>الرصيد</th><th>الحالة</th><th>إجراء</th></tr></thead>
+        <tbody id="admin-hubs-body"><tr><td colspan="6" style="text-align:center;opacity:0.5;padding:16px">⏳ جاري التحميل...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+  <div class="page" id="p-disputes"><div class="card"><div class="card-head"><span class="card-title">⚖️ النزاعات والطرود المفقودة</span></div><div class="card-body" style="padding:0"><table><thead><tr><th>الطرد</th><th>آخر سكان</th><th>المسؤول</th><th>المبلغ</th><th>الإجراء</th></tr></thead><tbody><tr><td style="font-family:var(--mono);color:var(--red)">#WS-00654</td><td>كريم المنصوري (ليفرور)</td><td style="color:var(--red)">كريم المنصوري</td><td style="font-family:var(--mono)">85 DT</td><td><div style="display:flex;gap:4px"><button class="btn btn-red btn-sm" onclick="openModal('modal-compensation')">تعويض من الصندوق</button><button class="btn btn-ghost btn-sm">تواصل</button></div></td></tr></tbody></table></div></div></div>
+  <div class="page" id="p-reports"><div class="card"><div class="card-head"><span class="card-title">📊 التقارير والإحصائيات</span></div><div class="card-body"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"><div style="background:var(--s2);border-radius:10px;padding:14px;text-align:center"><div style="font-size:11px;color:var(--text2);margin-bottom:6px">إجمالي الكوليات</div><div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--accent)">24,100</div></div><div style="background:var(--s2);border-radius:10px;padding:14px;text-align:center"><div style="font-size:11px;color:var(--text2);margin-bottom:6px">إيرادات إجمالية</div><div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--green)">48,200 DT</div></div><div style="background:var(--s2);border-radius:10px;padding:14px;text-align:center"><div style="font-size:11px;color:var(--text2);margin-bottom:6px">صندوق التأمين</div><div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--purple)">4,820 DT</div></div><div style="background:var(--s2);border-radius:10px;padding:14px;text-align:center"><div style="font-size:11px;color:var(--text2);margin-bottom:6px">نسبة التسليم</div><div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--green)">71.5%</div></div></div></div></div></div>
+
+  </div><!-- content-wrap -->
+</div><!-- main -->
+
+<!-- ══ MODALS ══ -->
+
+<!-- طلب رفع سقف -->
+<div class="modal-overlay" id="modal-plafond-req">
+  <div class="modal">
+    <div class="modal-title">🔴 طلب رفع سقف — بلال شكير</div>
+    <div class="modal-sub">الليفرور في وسط يومه — رصيده 980 DT من 1,000 DT</div>
+    <div style="background:var(--s2);border-radius:10px;padding:14px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:var(--text2)">البلافون الحالي</span><span style="font-family:var(--mono)">1,000 DT</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:var(--text2)">المطلوب</span><span style="font-family:var(--mono);color:var(--yellow)">1,500 DT</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--text2)">السبب</span><span>يوم مكثف</span></div>
+    </div>
+    <div class="field"><label>البلافون الجديد (DT)</label><input type="number" value="1500" style="direction:ltr"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-plafond-req')">إلغاء</button>
+      <button class="btn btn-red" onclick="closeModal('modal-plafond-req');showToast('❌ تم رفض الطلب')">رفض</button>
+      <button class="btn btn-green" onclick="closeModal('modal-plafond-req');showToast('✅ تم رفع السقف لـ 1,500 DT')">✅ موافقة</button>
+    </div>
+  </div>
+</div>
+
+<!-- طلب تسجيل -->
+<div class="modal-overlay" id="modal-register-req">
+  <div class="modal">
+    <div class="modal-title">📝 طلب تسجيل — أمين الرحالي</div>
+    <div class="modal-sub">ترانسبورتور · الهوارية</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div style="background:var(--s2);border-radius:10px;padding:12px;text-align:center;cursor:pointer" onclick="showToast('عرض بطاقة التعريف')"><div style="font-size:24px;margin-bottom:4px">🪪</div><div style="font-size:12px;font-weight:700">بطاقة التعريف</div><div style="font-size:11px;color:var(--green)">✅ موجودة</div></div>
+      <div style="background:var(--s2);border-radius:10px;padding:12px;text-align:center;cursor:pointer" onclick="showToast('عرض البطاقة الرمادية')"><div style="font-size:24px;margin-bottom:4px">🚗</div><div style="font-size:12px;font-weight:700">البطاقة الرمادية</div><div style="font-size:11px;color:var(--green)">✅ موجودة</div></div>
+    </div>
+    <div style="background:var(--s2);border-radius:10px;padding:12px;font-size:12px;color:var(--text2);margin-bottom:14px">
+      <div style="margin-bottom:4px">المسار المعتاد: الهوارية ↔ تونس الكبرى</div>
+      <div style="margin-bottom:4px">تاريخ الطلب: 27/01/2025 14:30</div>
+      <div>وقّع على الشروط: ✅</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-register-req')">إلغاء</button>
+      <button class="btn btn-red" onclick="closeModal('modal-register-req');showToast('❌ تم رفض الطلب')">رفض</button>
+      <button class="btn btn-green" onclick="approveReg()">✅ موافقة — تفعيل الحساب</button>
+    </div>
+  </div>
+</div>
+
+<!-- نزاع / تعويض -->
+<div class="modal-overlay" id="modal-dispute">
+  <div class="modal">
+    <div class="modal-title">⚖️ نزاع — طرد #WS-00654</div>
+    <div class="modal-sub">آخر سكان: كريم المنصوري (ليفرور) · منذ 6 ساعات</div>
+    <div style="background:var(--s2);border-radius:10px;padding:14px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">سلسلة العهدة:</div>
+      <div style="font-size:12px;color:var(--text);line-height:2">التاجر (07:00) → بلال شكير (08:10) → هوب نابل (08:45) → كريم المنصوري (09:20) → ؟</div>
+    </div>
+    <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px;color:var(--red)">⚠️ المسؤول القانوني: كريم المنصوري (آخر سكان)</div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-dispute')">إغلاق</button>
+      <button class="btn btn-yellow" onclick="closeModal('modal-dispute');showToast('📱 تم التواصل مع كريم المنصوري')">تواصل مع الناقل</button>
+      <button class="btn btn-primary" onclick="openModal('modal-compensation');closeModal('modal-dispute')">تعويض من الصندوق</button>
+    </div>
+  </div>
+</div>
+
+<!-- تعويض -->
+<div class="modal-overlay" id="modal-compensation">
+  <div class="modal">
+    <div class="modal-title">🛡️ تعويض من صندوق التأمين</div>
+    <div class="modal-sub">طرد #WS-00654 — قيمة 85 DT</div>
+    <div class="field"><label>المبلغ</label><input type="number" value="85" style="direction:ltr"></div>
+    <div class="field"><label>المستفيد</label><select><option>التاجر — شركة الأهرام</option><option>الزبون</option></select></div>
+    <div class="field"><label>ملاحظة</label><input type="text" placeholder="سبب التعويض..."></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-compensation')">إلغاء</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-compensation');showToast('✅ تم التعويض من صندوق التأمين')">✅ تأكيد التعويض</button>
+    </div>
+  </div>
+</div>
+
+<!-- فاتورة -->
+<div class="modal-overlay" id="modal-invoice-preview">
+  <div class="modal">
+    <div class="modal-title">🧾 فاتورة #INV-2025-047</div>
+    <div class="invoice-preview">
+      <div class="inv-header-row">
+        <div><div class="inv-id">#INV-2025-047</div><div style="font-size:11px;color:var(--text2);margin-top:3px">فاتورة خلاص تاجر</div></div>
+        <div class="inv-date">28/01/2025 · 10:34:22</div>
+      </div>
+      <div class="inv-row"><span class="inv-lbl">المستفيد</span><span class="inv-val">شركة الأهرام للتجارة</span></div>
+      <div class="inv-row"><span class="inv-lbl">رقم الكود</span><span class="inv-val" style="font-family:var(--mono);color:var(--accent)">AH7X2K</span></div>
+      <div class="inv-row"><span class="inv-lbl">الهوب</span><span class="inv-val">هوب تونس 4</span></div>
+      <div class="inv-row"><span class="inv-lbl">توقيع التاجر</span><span class="inv-val" style="color:var(--green)">✍️ مُوقَّع</span></div>
+      <div class="inv-total">
+        <div class="inv-total-val">540.000 DT</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">خمسمائة وأربعون دينارًا تونسيًا</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding-top:10px;border-top:1px solid var(--border)">
+        <div style="background:var(--s3);border-radius:6px;padding:8px;font-size:18px">▌║▌║</div>
+        <div style="font-size:10px;color:var(--text3)">QR للتحقق من صحة الفاتورة</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-invoice-preview')">إغلاق</button>
+      <button class="btn btn-primary" onclick="showToast('📥 تم تحميل الفاتورة')">📥 تحميل PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- خلاص تاجر -->
+<div class="modal-overlay" id="modal-merchant-pay">
+  <div class="modal">
+    <div class="modal-title">💸 إصدار كود خلاص تاجر</div>
+    <div class="modal-sub">شركة الأهرام للتجارة — رصيد: 4,820 DT</div>
+    <div class="field"><label>المبلغ (DT)</label><input type="number" placeholder="0.000" style="direction:ltr" id="pay-amount"></div>
+    <div class="field"><label>الهوب المخصصة للصرف</label><select><option>هوب تونس 4</option><option>هوب تونس 1</option><option>هوب تونس 2</option></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-merchant-pay')">إلغاء</button>
+      <button class="btn btn-primary" onclick="generateCode()">⚡ إصدار الكود — صالح 24 ساعة</button>
+    </div>
+  </div>
+</div>
+
+<!-- خلاص ليفرور -->
+<div class="modal-overlay" id="modal-pay-livreur">
+  <div class="modal">
+    <div class="modal-title">💸 خلاص ليفرور — بلال شكير</div>
+    <div class="modal-sub">عمولة مستحقة: 190.5 DT</div>
+    <div class="field"><label>المبلغ</label><input type="number" value="190.5" style="direction:ltr"></div>
+    <div class="field"><label>طريقة الصرف</label><select><option>هوب قريبة</option><option>D17</option><option>تحويل بنكي</option><option>بريد تونس</option></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-pay-livreur')">إلغاء</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-pay-livreur');showToast('✅ تم إصدار فاتورة خلاص بلال شكير')">✅ تأكيد الخلاص</button>
+    </div>
+  </div>
+</div>
+
+<!-- وثيقة قانونية -->
+<div class="modal-overlay" id="modal-legal-doc">
+  <div class="modal">
+    <div class="modal-title">📋 وثيقة عبور — بلال شكير</div>
+    <div class="modal-sub">للعرض على الدوريات الأمنية والديوانية</div>
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:12px;color:var(--text2);line-height:1.9;margin-bottom:14px">
+      <strong style="color:var(--text);font-size:13px">وثيقة ناقل معتمد — منصة وصّلني 🇹🇳</strong><br>
+      رقم الترخيص: <span style="font-family:var(--mono);color:var(--accent)">WS-LIC-2025-0047</span><br>
+      الاسم: بلال شكير · الهوية: 12345678<br>
+      النوع: ليفرور معتمد · المنطقة: تونس الكبرى<br>
+      تاريخ الوثيقة: 28/01/2025 · 09:00<br><br>
+      <strong style="color:var(--text)">الطرود في العهدة (8 طرود):</strong><br>
+      #WS-00847 · شركة الأهرام → محمد علي · تونس<br>
+      #WS-00843 · متجر الياسمين → عمر الشابي · تونس<br>
+      + 6 طرود أخرى<br><br>
+      <div style="display:flex;align-items:center;gap:12px;background:var(--s3);border-radius:8px;padding:12px">
+        <div style="font-size:32px">▌║▌║▌▌</div>
+        <div><div style="font-size:11px;font-weight:700;color:var(--text)">امسح للتحقق الفوري</div><div style="font-size:10px;color:var(--text3)">verify.wssalni.tn/doc/0047</div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-legal-doc')">إغلاق</button>
+      <button class="btn btn-primary" onclick="showToast('📥 تم تحميل الوثيقة')">📥 تحميل PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- تعديل بلافون -->
+<div class="modal-overlay" id="modal-plafond-edit">
+  <div class="modal">
+    <div class="modal-title">⚙️ تعديل البلافون</div>
+    <div class="field"><label>البلافون الجديد (DT)</label><input type="number" id="plafond-amount" placeholder="1000" style="direction:ltr"></div>
+    <div class="field"><label>السبب</label><input type="text" placeholder="سبب التعديل..."></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-plafond-edit')">إلغاء</button>
+      <button class="btn btn-primary" onclick="savePlafond()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- عرض وثائق التسجيل -->
+<div class="modal-overlay" id="modal-view-docs">
+  <div class="modal">
+    <div class="modal-title">📄 وثائق أمين الرحالي</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div style="background:var(--s2);border-radius:10px;padding:16px;text-align:center"><div style="font-size:36px;margin-bottom:8px">🪪</div><div style="font-size:12px;font-weight:700;margin-bottom:4px">بطاقة التعريف</div><span class="tag tag-green">✅ صالحة</span></div>
+      <div style="background:var(--s2);border-radius:10px;padding:16px;text-align:center"><div style="font-size:36px;margin-bottom:8px">🚗</div><div style="font-size:12px;font-weight:700;margin-bottom:4px">البطاقة الرمادية</div><span class="tag tag-green">✅ صالحة</span></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-view-docs')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- خلاص ترانسبورتور -->
+<div class="modal-overlay" id="modal-pay-trans">
+  <div class="modal">
+    <div class="modal-title">💸 خلاص ترانسبورتور — أمين الرحالي</div>
+    <div class="modal-sub">عمولة مستحقة: 57 DT</div>
+    <div class="field"><label>المبلغ</label><input type="number" value="57" style="direction:ltr"></div>
+    <div class="field"><label>طريقة الصرف</label><select><option>هوب قريبة</option><option>D17</option><option>تحويل بنكي</option><option>بريد تونس</option></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-pay-trans')">إلغاء</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-pay-trans');showToast('✅ تم خلاص أمين الرحالي')">✅ تأكيد</button>
+    </div>
+  </div>
+</div>
+
+
+// ─── Admin Map ───────────────────────────────
+let _adminMap = null;
+
+async function initAdminMap() {
+  if (!_adminMap) {
+    _adminMap = new WsMap('admin-map', 'admin');
+    _adminMap.init(36.8189, 10.1658, 9);
+  }
+  await refreshAdminMap();
+}
+
+async function refreshAdminMap() {
+  if (!_adminMap) return;
+  try {
+    const token = localStorage.getItem('ws_token');
+    const res = await fetch('/api/location/admin/all', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+    if (!data.success) return;
+
+    const couriers = data.couriers || [];
+
+    // تحديث الخريطة
+    couriers.forEach(c => _adminMap.addCourier(c));
+
+    // تحديث الجداول
+    const livreurs = couriers.filter(c => c.role === 'livreur');
+    const trans    = couriers.filter(c => c.role === 'transporteur');
+
+    const lBody = document.getElementById('map-livreurs-body');
+    const tBody = document.getElementById('map-trans-body');
+
+    if (lBody) lBody.innerHTML = livreurs.length
+      ? livreurs.map(c=>`<tr>
+          <td>${c.name}</td>
+          <td style="font-family:var(--mono)">${c.parcelCount}</td>
+          <td style="font-family:var(--mono);font-size:11px">${WsUI.formatDate(c.lastSeen)}</td>
+        </tr>`).join('')
+      : '<tr><td colspan="3" style="text-align:center;opacity:0.5;padding:12px">لا يوجد</td></tr>';
+
+    if (tBody) tBody.innerHTML = trans.length
+      ? trans.map(c=>`<tr>
+          <td>${c.name}</td>
+          <td style="font-family:var(--mono)">${c.parcelCount}</td>
+          <td style="font-family:var(--mono);font-size:11px">${WsUI.formatDate(c.lastSeen)}</td>
+        </tr>`).join('')
+      : '<tr><td colspan="3" style="text-align:center;opacity:0.5;padding:12px">لا يوجد</td></tr>';
+
+    // إضافة الهوبات
+    const hubRes = await fetch('/api/location/hubs/map', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const hubData = await hubRes.json();
+    if (hubData.success) hubData.hubs?.forEach(h => _adminMap.addHub(h));
+
+  } catch(e) { console.warn('Admin map error:', e); }
+}
+
+<div class="toast" id="toast"></div>
+
+<script>
+// PAGES
+function goPage(id, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const titles={
+    'p-dashboard':'لوحة المؤشرات','p-map':'الخريطة الحية','p-alerts':'التنبيهات',
+    'p-users':'إدارة المستخدمين','p-register':'طلبات التسجيل','p-plafond':'البلافونات',
+    'p-parcels':'تتبع الطرود','p-hubs':'الهوبات','p-disputes':'النزاعات',
+    'p-billing':'نظام الفوترة','p-insurance':'صندوق التأمين','p-merchant-pay':'خلاص التجار',
+    'p-reports':'التقارير','p-legal':'الوثائق القانونية','p-zones':'المناطق والأسعار',
+    'p-notif':'الإشعارات'
+  };
+  document.getElementById('page-title').textContent = titles[id]||'';
+  // تحديث الـ badge في الـ pending reg
+  if(id==='p-register'){
+    WsAdmin.getRegistrations().then(r=>{
+      const badge=document.querySelector('.nav-badge.yellow');
+      if(badge&&r.count!==undefined) badge.textContent=r.count;
+    });
+  }
+  // تحميل البيانات عند الانتقال للصفحة
+  if(id==='p-dashboard') loadDashboard();
+  if(id==='p-register') loadRegistrations();
+  if(id==='p-users') loadUsers();
+  if(id==='p-disputes') loadDisputes();
+  if(id==='p-reports') loadReports();
+  if(id==='p-map') setTimeout(initAdminMap, 200);
+  if(id==='p-parcels') loadAdminParcels();
+  if(id==='p-hubs') loadAdminHubs();
+}
+
+// ─── DASHBOARD (حقيقي) ────────────────────────
+async function loadDashboard(){
+  const r=await WsAdmin.getDashboard();
+  if(!r.success) return;
+  const s=r.stats;
+  // KPI cards
+  const map={
+    'kpi-parcels': s.parcels?.total,
+    'kpi-delivered': s.parcels?.delivered,
+    'kpi-users': s.users?.active,
+    'kpi-revenue': (s.finance?.revenue||0).toFixed(3)+' DT',
+    'kpi-returns': s.parcels?.returns,
+    'kpi-insurance': (s.finance?.insurance||0).toFixed(3)+' DT',
+    'kpi-pending-reg': s.alerts?.pendingRegistrations,
+    'kpi-disputes': s.alerts?.openDisputes,
+  };
+  Object.entries(map).forEach(([id,val])=>{
+    const el=document.getElementById(id);
+    if(el&&val!==undefined) el.textContent=val;
+  });
+  // Recent parcels table
+  if(r.recentParcels?.length){
+    const tbody=document.getElementById('recent-parcels-body');
+    if(tbody){
+      tbody.innerHTML=r.recentParcels.map(p=>`
+        <tr>
+          <td style="font-family:var(--mono)">${p.id}</td>
+          <td>${p.merchantName||'—'}</td>
+          <td>${p.recipientCity||'—'}</td>
+          <td>${WsUI.statusBadge(p.status)}</td>
+          <td style="font-family:var(--mono)">${p.codAmount||0} DT</td>
+          <td>${WsUI.formatDate(p.createdAt)}</td>
+        </tr>`).join('');
+    }
+  }
+}
+
+// ─── REGISTRATIONS (حقيقي) ───────────────────
+async function loadRegistrations(){
+  const r=await WsAdmin.getRegistrations();
+  const container=document.getElementById('registrations-list');
+  if(!container) return;
+  if(!r.success||!r.count){
+    container.innerHTML='<p style="text-align:center;padding:20px;opacity:0.5">لا توجد طلبات جديدة ✅</p>';
+    return;
+  }
+  const roleLabels={merchant:'تاجر',livreur:'ليفرور',transporteur:'ترانسبورتور',hub:'هوب'};
+  container.innerHTML=r.requests.map(req=>`
+    <tr>
+      <td>${req.name}</td>
+      <td>${req.phone}</td>
+      <td>${roleLabels[req.role]||req.role}</td>
+      <td>${WsUI.formatDate(req.createdAt)}</td>
+      <td>
+        <button class="btn btn-green btn-sm" onclick="approveUser('${req.userId}',this)">✅ تفعيل</button>
+        <button class="btn btn-red btn-sm" onclick="rejectUser('${req.userId}',this)">❌ رفض</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function approveUser(userId, btn){
+  if(btn) btn.disabled=true;
+  const r=await WsAdmin.approveUser(userId);
+  showToast(r.success?'✅ '+r.message:'❌ '+r.message);
+  if(r.success) loadRegistrations();
+}
+async function rejectUser(userId, btn){
+  if(btn) btn.disabled=true;
+  const r=await WsAdmin.suspendUser(userId);
+  showToast(r.success?'تم الرفض':'❌ خطأ');
+  if(r.success) loadRegistrations();
+}
+
+// ─── USERS (حقيقي) ───────────────────────────
+async function loadUsers(role=null){
+  const r=await WsAdmin.getUsers(role);
+  const tbody=document.getElementById('users-table-body');
+  if(!tbody||!r.success) return;
+  const roleLabels={merchant:'🏪 تاجر',livreur:'🛵 ليفرور',transporteur:'🚗 ترانسبورتور',hub:'🏭 هوب'};
+  tbody.innerHTML=r.users.map(u=>`
+    <tr>
+      <td>${u.name}</td>
+      <td>${u.phone}</td>
+      <td>${roleLabels[u.role]||u.role}</td>
+      <td style="font-family:var(--mono)">${WsUI.formatDT(u.balance)}</td>
+      <td>${WsUI.statusBadge(u.status)}</td>
+      <td>
+        ${u.status==='active'?`<button class="btn btn-red btn-sm" onclick="suspendUserAction('${u.id}',this)">إيقاف</button>`:''}
+        ${u.status!=='active'?`<button class="btn btn-green btn-sm" onclick="approveUser('${u.id}',this)">تفعيل</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="openModal('modal-plafond-edit');_editUserId='${u.id}'">بلافون</button>
+      </td>
+    </tr>`).join('');
+}
+let _editUserId=null;
+async function suspendUserAction(userId,btn){
+  if(btn) btn.disabled=true;
+  const r=await WsAdmin.suspendUser(userId);
+  showToast(r.success?'تم إيقاف الحساب':'❌ خطأ');
+  if(r.success) loadUsers();
+}
+async function savePlafond(){
+  const val=document.getElementById('plafond-amount')?.value;
+  if(!val||!_editUserId){showToast('⚠️ أدخل القيمة');return;}
+  const r=await WsFinance.setCeiling(_editUserId,parseFloat(val));
+  showToast(r.success?'✅ '+r.message:'❌ '+r.message);
+  closeModal('modal-plafond-edit');
+}
+
+// ─── DISPUTES (حقيقي) ────────────────────────
+async function loadDisputes(){
+  const r=await WsAdmin.getDisputes('open');
+  const tbody=document.getElementById('disputes-body');
+  if(!tbody||!r.success) return;
+  tbody.innerHTML=r.disputes.length?r.disputes.map(d=>`
+    <tr>
+      <td style="font-family:var(--mono)">${d.parcelId}</td>
+      <td>${d.type||'—'}</td>
+      <td>${d.description?.substring(0,40)||'—'}</td>
+      <td>${WsUI.formatDate(d.createdAt)}</td>
+      <td><button class="btn btn-primary btn-sm" onclick="resolveDispute('${d.id}')">حل</button></td>
+    </tr>`).join(''):'<tr><td colspan="5" style="text-align:center;opacity:0.5">لا توجد نزاعات مفتوحة ✅</td></tr>';
+}
+async function resolveDispute(id){
+  const r=await WsAdmin.resolveDispute(id,'تم الحل من قبل الإدارة');
+  showToast(r.success?'✅ تم حل النزاع':'❌ خطأ');
+  if(r.success) loadDisputes();
+}
+
+// ─── REPORTS (حقيقي) ─────────────────────────
+async function loadReports(period='7d'){
+  const r=await WsAdmin.getReports(period);
+  if(!r.success) return;
+  const rep=r.report;
+  const ids={
+    'rep-total':rep.totalParcels,'rep-delivered':rep.delivered,
+    'rep-rate':rep.deliveryRate+'%','rep-revenue':rep.revenue?.toFixed(3)+' DT',
+    'rep-platform':rep.platformRevenue?.toFixed(3)+' DT',
+    'rep-insurance':rep.insuranceFund?.toFixed(3)+' DT',
+    'rep-avg':rep.averagePerDay+' طرد/يوم'
+  };
+  Object.entries(ids).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.textContent=val;});
+}
+
+// ─── GENERATE SETTLEMENT CODE (حقيقي) ────────
+async function generateCode(){
+  const amt=document.getElementById('pay-amount')?.value;
+  const merchantId=document.getElementById('pay-merchant-id')?.value||'demo-merchant';
+  if(!amt){showToast('⚠️ أدخل المبلغ');return;}
+  const r=await WsFinance.generateSettlementCode(merchantId);
+  closeModal('modal-merchant-pay');
+  showToast(r.success?`✅ كود ${r.code} صدر لـ ${amt} DT — صالح 24 ساعة`:'❌ خطأ في توليد الكود');
+}
+
+// ─── ADMIN PARCELS (حقيقي) ──────────────────
+let _allParcels=[];
+async function loadAdminParcels(){
+  const status=document.getElementById('parcel-status-filter')?.value||'';
+  const r=await WsParcels.adminList(status||null);
+  const tbody=document.getElementById('admin-parcels-body');
+  if(!tbody) return;
+  if(!r.success||!r.parcels?.length){
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;opacity:0.5;padding:16px">لا توجد طرود</td></tr>';
+    return;
+  }
+  _allParcels=r.parcels;
+  renderParcels(_allParcels);
+}
+function renderParcels(parcels){
+  const tbody=document.getElementById('admin-parcels-body');
+  if(!tbody) return;
+  tbody.innerHTML=parcels.map(p=>`
+    <tr>
+      <td style="font-family:var(--mono);color:var(--accent)">${p.id}</td>
+      <td>${p.merchantName||'—'}</td>
+      <td>${p.recipientName||'—'}</td>
+      <td>${p.recipientCity||'—'}</td>
+      <td style="font-size:11px">${p.currentCustodianType||'—'}</td>
+      <td>${WsUI.statusBadge(p.status)}</td>
+      <td style="font-family:var(--mono)">${p.codAmount||0} DT</td>
+      <td style="font-family:var(--mono);font-size:11px">${WsUI.formatDate(p.createdAt)}</td>
+    </tr>`).join('');
+}
+function filterParcelsTable(q){
+  if(!q){renderParcels(_allParcels);return;}
+  const filtered=_allParcels.filter(p=>
+    p.id?.toLowerCase().includes(q.toLowerCase())||
+    p.recipientName?.includes(q)||
+    p.merchantName?.includes(q)
+  );
+  renderParcels(filtered);
+}
+
+// ─── ADMIN HUBS (حقيقي) ─────────────────────
+async function loadAdminHubs(){
+  const r=await WsAdmin.getHubs();
+  const tbody=document.getElementById('admin-hubs-body');
+  if(!tbody||!r.success) return;
+  if(!r.hubs?.length){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;opacity:0.5;padding:16px">لا توجد هوبات</td></tr>';
+    return;
+  }
+  tbody.innerHTML=r.hubs.map(h=>`
+    <tr>
+      <td><b>${h.name||'—'}</b></td>
+      <td>${h.city||'—'}</td>
+      <td>${h.phone||'—'}</td>
+      <td style="font-family:var(--mono)">${WsUI.formatDT(h.balance)}</td>
+      <td>${h.isOpen?'<span class="tag tag-green">🟢 مفتوح</span>':'<span class="tag tag-red">🔴 مغلق</span>'}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="openModal('modal-plafond-edit');_editUserId='${h.id}'">بلافون</button>
+        ${h.status==='active'?`<button class="btn btn-red btn-sm" onclick="suspendUserAction('${h.id}',this)">إيقاف</button>`:''}
+      </td>
+    </tr>`).join('');
+}
+
+// ─── SEND NOTIFICATION (حقيقي) ──────────────
+async function sendNotification(){
+  const msgEl=document.querySelector('#p-notif textarea');
+  const msg=msgEl?.value?.trim();
+  if(!msg){showToast('⚠️ اكتب نص الإشعار');return;}
+  const r=await WsAdmin.sendNotification('all','إشعار من الإدارة',msg,'info');
+  showToast(r.success?'✅ تم إرسال الإشعار':'❌ خطأ في الإرسال');
+  if(r.success && msgEl) msgEl.value='';
+}
+
+// TABS
+function utab(el,id){
+  el.closest('.tabs').querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
+  ['ut-merchants','ut-livreurs','ut-trans','ut-hubs'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});
+  document.getElementById(id).style.display='block';
+  const roleMap={'ut-merchants':'merchant','ut-livreurs':'livreur','ut-trans':'transporteur','ut-hubs':'hub'};
+  if(roleMap[id]) loadUsers(roleMap[id]);
+}
+function btab(el,id){
+  el.closest('.tabs').querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
+  ['bt-all','bt-merchants','bt-livreurs','bt-trans','bt-hubs'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});
+  document.getElementById(id).style.display='block';
+}
+
+// MODALS
+function openModal(id){const el=document.getElementById(id);if(el)el.classList.add('open');}
+function closeModal(id){const el=document.getElementById(id);if(el)el.classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+// LEGACY approveReg (للأزرار الثابتة في الـ HTML)
+async function approveReg(){
+  closeModal('modal-register-req');
+  showToast('✅ تم التفعيل');
+  loadRegistrations();
+}
+
+// TOAST
+function showToast(msg,type){WsUI.showToast(msg,type||'info');}
+
+// AUTO-INIT
+document.addEventListener('DOMContentLoaded',()=>{
+  const user=WsAuth.guard('admin');
+  if(user){
+    document.querySelectorAll('.ws-user-name').forEach(el=>el.textContent=user.name||'المدير');
+    loadDashboard();
+    loadRegistrations();
+  }
+});
+</script>
+</body>
+</html>

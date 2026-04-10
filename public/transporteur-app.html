@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>وصّلني — الترانسبورتور</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#f0f2ff;--white:#fff;--border:#dde2f5;
+  --accent:#5b6ef5;--accent2:#4456e0;
+  --green:#00b87a;--red:#ff3d6b;--yellow:#f59e0b;
+  --orange:#f97316;--blue:#1a56ff;
+  --text:#0d1240;--text2:#5060a0;--text3:#99a0cc;
+  --mono:'JetBrains Mono',monospace;--font:'Tajawal',sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto;overflow-x:hidden;}
+
+.screen{display:none;min-height:100vh;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* LOGIN */
+#s-login{background:linear-gradient(160deg,#0d1240 0%,#2d3580 60%,#5b6ef5 100%);align-items:center;justify-content:center;padding:40px 28px;}
+.login-logo{width:72px;height:72px;background:rgba(255,255,255,0.12);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px;border:1px solid rgba(255,255,255,0.2);}
+.login-title{font-size:28px;font-weight:900;color:#fff;text-align:center;margin-bottom:4px;}
+.login-role{font-size:13px;color:rgba(255,255,255,0.5);text-align:center;background:rgba(255,255,255,0.1);padding:4px 18px;border-radius:20px;display:block;width:fit-content;margin:0 auto 36px;}
+.login-card{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:24px;width:100%;}
+.login-label{font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.login-input{width:100%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:14px 16px;font-family:var(--font);font-size:15px;color:#fff;outline:none;margin-bottom:14px;}
+.login-input::placeholder{color:rgba(255,255,255,0.3);}
+.login-input:focus{border-color:rgba(255,255,255,0.4);}
+.login-btn{width:100%;background:#fff;color:var(--accent);border:none;border-radius:12px;padding:16px;font-family:var(--font);font-size:16px;font-weight:800;cursor:pointer;margin-top:4px;}
+.login-btn:active{transform:scale(0.98);}
+
+/* TOPBAR */
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;box-shadow:0 1px 8px rgba(0,0,0,0.06);}
+.back-btn{width:36px;height:36px;border-radius:10px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0;}
+.topbar-title{font-size:17px;font-weight:800;flex:1;}
+.topbar-icon{font-size:22px;}
+
+/* HOME */
+#s-home{background:var(--bg);}
+.home-header{background:linear-gradient(135deg,#0d1240,#5b6ef5);padding:24px 20px 28px;color:#fff;}
+.home-greeting{font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:4px;}
+.home-name{font-size:20px;font-weight:800;margin-bottom:16px;}
+.trip-status-card{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:14px 16px;}
+.tsc-lbl{font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:6px;}
+.tsc-route{font-size:16px;font-weight:800;color:#fff;margin-bottom:4px;}
+.tsc-sub{font-size:12px;color:rgba(255,255,255,0.5);}
+.tsc-badges{display:flex;gap:8px;margin-top:10px;}
+.tsc-badge{background:rgba(255,255,255,0.12);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);}
+
+.home-grid{padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.home-btn{background:var(--white);border-radius:18px;padding:18px 16px;display:flex;flex-direction:column;align-items:flex-start;cursor:pointer;border:1.5px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.04);position:relative;overflow:hidden;transition:all 0.15s;}
+.home-btn:active{transform:scale(0.97);}
+.home-btn-icon{font-size:26px;margin-bottom:8px;}
+.home-btn-label{font-size:14px;font-weight:800;color:var(--text);}
+.home-btn-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.home-btn-accent{position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 18px 18px;}
+.home-btn:nth-child(1) .home-btn-accent{background:var(--accent);}
+.home-btn:nth-child(2) .home-btn-accent{background:var(--green);}
+.home-btn:nth-child(3) .home-btn-accent{background:var(--yellow);}
+.home-btn:nth-child(4) .home-btn-accent{background:var(--orange);}
+
+/* CONTENT */
+.content{flex:1;padding:16px;overflow-y:auto;}
+.card{background:var(--white);border-radius:16px;padding:18px;margin-bottom:12px;border:1px solid var(--border);box-shadow:0 1px 6px rgba(0,0,0,0.04);}
+.card-title{font-size:14px;font-weight:800;margin-bottom:14px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+.field input,.field select{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:13px 14px;font-family:var(--font);font-size:14px;color:var(--text);outline:none;transition:border-color 0.2s;}
+.field input:focus,.field select:focus{border-color:var(--accent);}
+.field input::placeholder{color:var(--text3);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+.btn-primary{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:16px;font-family:var(--font);font-size:16px;font-weight:800;cursor:pointer;margin-top:4px;}
+.btn-primary:active{transform:scale(0.98);background:var(--accent2);}
+.btn-secondary{width:100%;background:var(--bg);color:var(--text);border:1.5px solid var(--border);border-radius:14px;padding:14px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;}
+.btn-green{width:100%;background:#f0fff8;color:var(--green);border:1.5px solid #b7f5d8;border-radius:14px;padding:14px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;margin-top:8px;}
+
+/* MAP NAV */
+#s-nav{background:#0d1240;}
+.nav-topbar{background:rgba(13,18,64,0.97);padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.nav-topbar .back-btn{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.1);color:#fff;}
+.nav-topbar .topbar-title{color:#fff;font-size:15px;}
+.nav-area{flex:1;position:relative;overflow:hidden;background:radial-gradient(ellipse at 35% 40%,#1a2060 0%,#0d1240 70%);min-height:350px;}
+.nav-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(91,110,245,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(91,110,245,0.06) 1px,transparent 1px);background-size:35px 35px;}
+
+/* ROAD LINE */
+.road-line{position:absolute;pointer-events:none;}
+svg.route-svg{position:absolute;inset:0;width:100%;height:100%;}
+
+/* HUB PINS */
+.hub-pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;z-index:5;}
+.hub-pin-circle{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;border:2px solid rgba(255,255,255,0.3);box-shadow:0 3px 12px rgba(0,0,0,0.4);}
+.hub-pin-tail{width:2px;height:8px;margin:0 auto;border-radius:0 0 2px 2px;}
+.hub-pin.on-route .hub-pin-circle{border-color:var(--yellow);box-shadow:0 0 0 4px rgba(245,158,11,0.25),0 3px 12px rgba(0,0,0,0.4);}
+
+/* MY LOCATION */
+.my-loc{position:absolute;width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 0 0 4px rgba(91,110,245,0.3),0 3px 8px rgba(0,0,0,0.3);transform:translate(-50%,-50%);z-index:10;animation:loc-pulse 2s ease-in-out infinite;}
+@keyframes loc-pulse{0%,100%{box-shadow:0 0 0 4px rgba(91,110,245,0.3)}50%{box-shadow:0 0 0 10px rgba(91,110,245,0)}}
+
+/* HUB POPUP */
+.hub-popup{position:absolute;background:rgba(13,18,64,0.97);border:1px solid rgba(91,110,245,0.4);border-radius:14px;padding:14px 16px;min-width:190px;transform:translate(-50%,-100%);margin-top:-50px;z-index:20;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.5);}
+.hub-popup.show{display:block;}
+.hp-name{font-size:14px;font-weight:700;color:#fff;margin-bottom:4px;}
+.hp-addr{font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:8px;}
+.hp-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:8px;}
+.hp-parcels{font-size:12px;color:rgba(255,255,255,0.6);}
+
+.nav-bottom{background:rgba(13,18,64,0.97);border-top:1px solid rgba(255,255,255,0.08);padding:14px 20px;}
+.nb-route{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.nb-from{font-size:12px;font-weight:700;color:rgba(255,255,255,0.6);}
+.nb-to{font-size:13px;font-weight:800;color:#fff;}
+.nb-arrow{color:rgba(255,255,255,0.3);font-size:14px;}
+.nb-stats{display:flex;gap:16px;}
+.nb-stat{text-align:center;}
+.nb-stat-val{font-family:var(--mono);font-size:15px;font-weight:700;color:#fff;}
+.nb-stat-lbl{font-size:10px;color:rgba(255,255,255,0.4);margin-top:1px;}
+
+/* PARCELS */
+.parcel-item{background:var(--white);border-radius:14px;padding:14px 16px;margin-bottom:10px;border:1.5px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.parcel-item:active{transform:scale(0.99);}
+.p-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.p-info{flex:1;min-width:0;}
+.p-id{font-family:var(--mono);font-size:11px;color:var(--text2);margin-bottom:2px;}
+.p-name{font-size:13px;font-weight:700;}
+.p-route{font-size:11px;color:var(--text2);margin-top:2px;}
+.p-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.p-earn{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent);}
+.p-tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;}
+
+/* QR SCAN */
+.qr-box{background:var(--bg);border:2px dashed var(--border);border-radius:16px;padding:28px;text-align:center;margin-bottom:14px;cursor:pointer;transition:all 0.2s;}
+.qr-box:active{border-color:var(--accent);background:#f0f2ff;}
+.qr-icon{font-size:48px;margin-bottom:10px;}
+
+/* CUSTODY CHAIN */
+.chain{display:flex;align-items:center;gap:0;overflow-x:auto;padding:4px 0;margin-bottom:14px;}
+.chain-step{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:64px;}
+.chain-circle{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid var(--border);background:var(--bg);}
+.chain-circle.done{border-color:var(--green);background:#f0fff8;}
+.chain-circle.current{border-color:var(--accent);background:#f0f2ff;box-shadow:0 0 0 3px rgba(91,110,245,0.2);}
+.chain-circle.pending{opacity:0.4;}
+.chain-lbl{font-size:9px;color:var(--text2);font-weight:600;text-align:center;}
+.chain-time{font-size:9px;color:var(--text3);font-family:var(--mono);}
+.chain-line{flex:1;height:2px;background:var(--border);min-width:16px;}
+.chain-line.done{background:var(--green);}
+.chain-line.current{background:linear-gradient(90deg,var(--green),var(--accent));}
+
+/* SUGGESTION */
+.suggest-card{background:linear-gradient(135deg,rgba(245,158,11,0.08),rgba(245,158,11,0.02));border:1.5px solid rgba(245,158,11,0.35);border-radius:16px;padding:18px;margin-bottom:14px;animation:slideDown 0.3s ease;}
+@keyframes slideDown{from{transform:translateY(-10px);opacity:0}to{transform:translateY(0);opacity:1}}
+.sc-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.sc-icon{font-size:24px;}
+.sc-title{font-size:14px;font-weight:800;color:var(--yellow);}
+.sc-route{font-size:11px;color:var(--text2);}
+.sc-reward{background:rgba(245,158,11,0.12);border-radius:10px;padding:12px 14px;margin:10px 0;display:flex;justify-content:space-between;align-items:center;}
+.sc-reward-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--yellow);}
+.sc-reward-detail{text-align:left;}
+.sc-reward-lbl{font-size:11px;color:var(--text2);}
+.sc-actions{display:flex;gap:8px;}
+.btn-yellow{flex:1;background:rgba(245,158,11,0.15);color:var(--yellow);border:1.5px solid rgba(245,158,11,0.4);border-radius:12px;padding:12px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;}
+.btn-ghost-sm{flex:1;background:var(--bg);color:var(--text2);border:1.5px solid var(--border);border-radius:12px;padding:12px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;}
+
+/* FINANCE */
+.fin-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--border);}
+.fin-row:last-child{border-bottom:none;}
+.fin-lbl{font-size:14px;color:var(--text2);}
+.fin-val{font-family:var(--mono);font-size:16px;font-weight:700;}
+.fin-total .fin-lbl{font-weight:800;color:var(--text);}
+.fin-total .fin-val{font-size:22px;color:var(--accent);}
+.wm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;}
+.wm-btn{background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;}
+.wm-btn.selected{border-color:var(--accent);background:#f0f2ff;}
+.wm-icon{font-size:22px;margin-bottom:4px;}
+.wm-lbl{font-size:11px;font-weight:700;color:var(--text2);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:100;display:none;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-sheet{background:var(--white);border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:430px;animation:slideUp 0.25s ease;max-height:90vh;overflow-y:auto;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:6px;}
+.modal-sub{font-size:13px;color:var(--text2);margin-bottom:18px;}
+
+/* SUCCESS */
+.success-screen{position:fixed;inset:0;background:var(--accent);z-index:250;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;}
+.success-screen.show{display:flex;animation:fadeIn 0.3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#0d1240;color:#fff;padding:12px 24px;border-radius:100px;font-size:14px;font-weight:600;z-index:300;opacity:0;transition:opacity 0.2s;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;}
+
+/* SEG TABS */
+.seg-tabs{display:flex;background:var(--bg);border-radius:12px;padding:3px;gap:2px;margin-bottom:14px;border:1px solid var(--border);}
+.seg-tab{flex:1;padding:9px 4px;border-radius:10px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;color:var(--text2);transition:all 0.15s;}
+.seg-tab.active{background:var(--white);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+
+/* INFO BOX */
+.info-box{border-radius:12px;padding:12px 14px;font-size:13px;font-weight:600;margin-bottom:12px;}
+.info-blue{background:#eff4ff;color:var(--blue);border:1px solid #c7d7ff;}
+.info-green{background:#f0fff8;color:var(--green);border:1px solid #b7f5d8;}
+.info-yellow{background:#fffbeb;color:var(--yellow);border:1px solid #fde68a;}
+</style>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="/wassalni-api.js"></script>
+<script src="/wassalni-qr.js"></script>
+<script src="/wassalni-map.js"></script>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div class="screen active" id="s-login">
+  <div class="login-logo">🚗</div>
+  <div class="login-title">وصّلني</div>
+  <div class="login-role">ترانسبورتور</div>
+  <div class="login-card">
+    <div class="login-label">رقم الهاتف</div>
+    <input class="login-input" type="tel" placeholder="55 123 456" id="login-user" inputmode="numeric">
+    <div class="login-label">كلمة السر</div>
+    <input class="login-input" type="password" placeholder="••••••••" id="login-pass">
+    <button class="login-btn" onclick="doLogin()">دخول ←</button>
+  </div>
+</div>
+
+<!-- ══ HOME ══ -->
+<div class="screen" id="s-home">
+  <div class="home-header">
+    <div class="home-greeting">مرحباً،</div>
+    <div class="home-name">أمين الرحالي 🚗</div>
+    <div class="trip-status-card" id="trip-card-idle">
+      <div class="tsc-lbl">ما فيه رحلة مسجّلة</div>
+      <div class="tsc-route">سجّل رحلتك الآن</div>
+      <div class="tsc-sub">حدّد وجهتك وشوف الكوليات المتاحة في طريقك</div>
+    </div>
+    <div class="trip-status-card" id="trip-card-active" style="display:none">
+      <div class="tsc-lbl">رحلة نشطة 🟢</div>
+      <div class="tsc-route" id="trip-route-display">الهوارية ← تونس الكبرى</div>
+      <div class="tsc-badges">
+        <div class="tsc-badge" id="trip-parcels-badge">3 كوليات</div>
+        <div class="tsc-badge" id="trip-earn-badge">6 DT متوقعة</div>
+        <div class="tsc-badge">87 كم</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SMART SUGGESTION -->
+  <div id="home-suggestion" style="padding:14px 16px 0;display:none">
+    <div class="suggest-card">
+      <div class="sc-header">
+        <div class="sc-icon">🧠</div>
+        <div>
+          <div class="sc-title">اقتراح في طريقك!</div>
+          <div class="sc-route">هوب قرمبالية · +8 كلم عن مسارك</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px">كولي جاهز — وجهته تونس الكبرى مثلك</div>
+      <div class="sc-reward">
+        <div>
+          <div class="sc-reward-val" id="suggest-total">10 DT</div>
+          <div class="sc-reward-lbl">رصيدك الكلي لو قبلت</div>
+        </div>
+        <div class="sc-reward-detail">
+          <div style="font-size:11px;color:var(--text2)">رصيدك الحالي: 6 DT</div>
+          <div style="font-size:11px;color:var(--green)">+ بونص الكولي: 4 DT</div>
+        </div>
+      </div>
+      <div class="sc-actions">
+        <button class="btn-yellow" onclick="acceptSuggestion()">✅ قبول</button>
+        <button class="btn-ghost-sm" onclick="document.getElementById('home-suggestion').style.display='none'">تجاهل</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-grid">
+    <div class="home-btn" onclick="goScreen('s-trip')">
+      <div class="home-btn-icon">🗺️</div>
+      <div class="home-btn-label">الوجهة</div>
+      <div class="home-btn-sub">سجّل رحلتك</div>
+      <div class="home-btn-accent"></div>
+    </div>
+    <div class="home-btn" onclick="goScreen('s-balance')">
+      <div class="home-btn-icon">💰</div>
+      <div class="home-btn-label">الرصيد</div>
+      <div class="home-btn-sub" id="home-balance-sub">0 DT</div>
+      <div class="home-btn-accent"></div>
+    </div>
+    <div class="home-btn" onclick="goScreen('s-parcels')">
+      <div class="home-btn-icon">📦</div>
+      <div class="home-btn-label">طرود العهدة</div>
+      <div class="home-btn-sub" id="home-parcels-sub">0 كوليات</div>
+      <div class="home-btn-accent"></div>
+    </div>
+    <div class="home-btn" onclick="goScreen('s-return')">
+      <div class="home-btn-icon">↩️</div>
+      <div class="home-btn-label">طريق العودة</div>
+      <div class="home-btn-sub">كوليات في العودة</div>
+      <div class="home-btn-accent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 1: الوجهة + خريطة ══ -->
+<div class="screen" id="s-trip">
+  <div class="topbar">
+    <div class="back-btn" onclick="goHome()">←</div>
+    <div class="topbar-title">الوجهة والمسار</div>
+    <div class="topbar-icon">🗺️</div>
+  </div>
+
+  <!-- لو ما فيه رحلة -->
+  <div id="trip-form" class="content">
+    <div class="card">
+      <div class="card-title">📍 سجّل رحلتك</div>
+      <div class="info-box info-blue">📡 موقع انطلاقك يُحدَّد تلقائياً بالـ GPS</div>
+      <div class="field">
+        <label>نقطة الانطلاق (GPS تلقائي)</label>
+        <input type="text" value="الهوارية — تونس" id="trip-from" readonly style="color:var(--accent);font-weight:700">
+      </div>
+      <div class="field">
+        <label>الوجهة</label>
+        <select id="trip-to">
+          <option>تونس الكبرى</option>
+          <option>سوسة</option>
+          <option>صفاقس</option>
+          <option>المنستير</option>
+          <option>المهدية</option>
+          <option>قابس</option>
+          <option>مدنين</option>
+          <option>نابل</option>
+          <option>بنزرت</option>
+          <option>باجة</option>
+          <option>سليانة</option>
+          <option>القيروان</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>ساعة الانطلاق</label>
+          <input type="time" id="trip-depart" value="08:00">
+        </div>
+        <div class="field">
+          <label>ساعة الوصول المتوقعة</label>
+          <input type="time" id="trip-arrive" value="11:00">
+        </div>
+      </div>
+      <button class="btn-primary" onclick="startTrip()">🚗 بدء الرحلة — عرض الهوبات</button>
+    </div>
+  </div>
+
+  <!-- الخريطة بعد تسجيل الرحلة -->
+  <div id="trip-nav" style="display:none;flex:1;flex-direction:column;display:none">
+    <div style="background:var(--white);padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+      <div style="font-size:13px;font-weight:700;flex:1" id="nav-route-label">الهوارية ← تونس الكبرى</div>
+      <button onclick="endTrip()" style="background:#fff1f3;color:var(--red);border:1px solid #fecdd3;border-radius:8px;padding:6px 12px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer">إنهاء</button>
+    </div>
+
+    <div class="nav-area" onclick="closeHubPopup()">
+      <div class="nav-grid"></div>
+
+      <!-- مسار الطريق SVG -->
+      <svg class="route-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M 50 90 Q 48 70 52 55 Q 55 40 48 25 Q 45 15 50 8" stroke="rgba(91,110,245,0.4)" stroke-width="1.5" fill="none" stroke-dasharray="4,3"/>
+        <path d="M 50 90 Q 48 70 52 55 Q 55 40 48 25 Q 45 15 50 8" stroke="rgba(91,110,245,0.15)" stroke-width="4" fill="none"/>
+      </svg>
+
+      <!-- موقعي -->
+      <div class="my-loc" style="top:82%;left:50%"></div>
+
+      <!-- هوبات في المسار — أصفر -->
+      <div class="hub-pin on-route" style="top:65%;left:52%" onclick="showHubPopup(event,'هوب برج السرية','برج السرية، قريبة من مسارك',true,2,'5 كوليات جاهزة','14 DT')">
+        <div class="hub-pin-circle" style="background:var(--yellow)">🏭</div>
+        <div class="hub-pin-tail" style="background:var(--yellow)"></div>
+      </div>
+      <div class="hub-pin on-route" style="top:45%;left:48%" onclick="showHubPopup(event,'هوب قرمبالية','قرمبالية، +8 كلم',true,1,'2 كوليات','8 DT')">
+        <div class="hub-pin-circle" style="background:var(--yellow)">🏭</div>
+        <div class="hub-pin-tail" style="background:var(--yellow)"></div>
+      </div>
+      <div class="hub-pin on-route" style="top:28%;left:50%" onclick="showHubPopup(event,'هوب تونس 4','تونس الكبرى — وجهتك',true,0,'وجهتك النهائية','—')">
+        <div class="hub-pin-circle" style="background:var(--green)">🏭</div>
+        <div class="hub-pin-tail" style="background:var(--green)"></div>
+      </div>
+      <!-- هوب خارج المسار -->
+      <div class="hub-pin" style="top:55%;left:72%" onclick="showHubPopup(event,'هوب حمام الشط','حمام الشط، +18 كلم',false,0,'3 كوليات','—')">
+        <div class="hub-pin-circle" style="background:rgba(255,255,255,0.3)">🏭</div>
+        <div class="hub-pin-tail" style="background:rgba(255,255,255,0.3)"></div>
+      </div>
+
+      <!-- HUB POPUP -->
+      <div class="hub-popup" id="hub-popup">
+        <div class="hp-name" id="hp-name">هوب برج السرية</div>
+        <div class="hp-addr" id="hp-addr">برج السرية</div>
+        <div class="hp-badge" id="hp-badge" style="background:rgba(245,158,11,0.2);color:var(--yellow)">في مسارك</div>
+        <div class="hp-parcels" id="hp-parcels">5 كوليات جاهزة للنقل</div>
+        <div style="margin-top:8px;display:flex;gap:6px" id="hp-actions">
+          <button onclick="pickupFromHub();closeHubPopup()" style="flex:1;background:rgba(245,158,11,0.15);color:var(--yellow);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:8px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer">استلام الكوليات</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-bottom">
+      <div class="nb-route">
+        <div class="nb-from" id="nb-from">الهوارية</div>
+        <div class="nb-arrow">←</div>
+        <div class="nb-to" id="nb-to">تونس الكبرى</div>
+      </div>
+      <div class="nb-stats">
+        <div class="nb-stat"><div class="nb-stat-val" id="nb-parcels">3</div><div class="nb-stat-lbl">كوليات</div></div>
+        <div class="nb-stat"><div class="nb-stat-val" id="nb-earn">6 DT</div><div class="nb-stat-lbl">متوقعة</div></div>
+        <div class="nb-stat"><div class="nb-stat-val">87 كم</div><div class="nb-stat-lbl">المسافة</div></div>
+        <div class="nb-stat"><div class="nb-stat-val">~2h</div><div class="nb-stat-lbl">الوقت</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 2: الرصيد ══ -->
+<div class="screen" id="s-balance">
+  <div class="topbar">
+    <div class="back-btn" onclick="goHome()">←</div>
+    <div class="topbar-title">الرصيد والعمولات</div>
+    <div class="topbar-icon">💰</div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="card-title">ملخص العمولات</div>
+      <div class="fin-row"><div class="fin-lbl">عمولة رحلة اليوم</div><div class="fin-val" style="color:var(--accent)">+6 DT</div></div>
+      <div class="fin-row"><div class="fin-lbl">بونصات كوليات إضافية</div><div class="fin-val" style="color:var(--green)">+4 DT</div></div>
+      <div class="fin-row"><div class="fin-lbl">رحلات سابقة</div><div class="fin-val" style="color:var(--accent)">+47 DT</div></div>
+      <div class="fin-row fin-total"><div class="fin-lbl">الرصيد الكلي</div><div class="fin-val">57 DT</div></div>
+    </div>
+    <div class="info-box info-blue">ℹ️ الترانسبورتور ما يتعامل بـ COD — عمولات نقل فقط بين الهوبات</div>
+    <div class="card">
+      <div class="card-title">الحصول على مستحقاتك</div>
+      <div class="field"><label>المبلغ المطلوب (DT)</label><input type="number" placeholder="0.000" style="direction:ltr" id="balance-amount"></div>
+      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px">طريقة الصرف</div>
+      <div class="wm-grid">
+        <div class="wm-btn selected" onclick="selWM(this)"><div class="wm-icon">🏭</div><div class="wm-lbl">هوب قريبة</div></div>
+        <div class="wm-btn" onclick="selWM(this)"><div class="wm-icon">📮</div><div class="wm-lbl">بريد تونس</div></div>
+        <div class="wm-btn" onclick="selWM(this)"><div class="wm-icon">🏦</div><div class="wm-lbl">تحويل بنكي</div></div>
+        <div class="wm-btn" onclick="selWM(this)"><div class="wm-icon">📱</div><div class="wm-lbl">D17</div></div>
+      </div>
+      <button class="btn-primary" onclick="doWithdraw()">طلب الصرف</button>
+    </div>
+    <div class="card">
+      <div class="card-title">سجل الرحلات</div>
+      <div class="fin-row"><div class="fin-lbl">الهوارية ← تونس · 28 يناير</div><div class="fin-val" style="color:var(--accent)">+10 DT</div></div>
+      <div class="fin-row"><div class="fin-lbl">قليبية ← سوسة · 25 يناير</div><div class="fin-val" style="color:var(--accent)">+8 DT</div></div>
+      <div class="fin-row" style="border:none"><div class="fin-lbl">نابل ← تونس · 22 يناير</div><div class="fin-val" style="color:var(--accent)">+12 DT</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 3: طرود العهدة ══ -->
+<div class="screen" id="s-parcels">
+  <div class="topbar">
+    <div class="back-btn" onclick="goHome()">←</div>
+    <div class="topbar-title">طرود في العهدة</div>
+    <div class="topbar-icon">📦</div>
+  </div>
+  <div class="content">
+    <div class="info-box info-green">✅ كل سكان ناجح = نقل فوري للمسؤولية القانونية</div>
+
+    <!-- سلسلة العهدة -->
+    <div class="card" style="padding:14px">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">سلسلة العهدة — #WS-00845</div>
+      <div class="chain">
+        <div class="chain-step"><div class="chain-circle done">🏪</div><div class="chain-lbl">التاجر</div><div class="chain-time">07:00</div></div>
+        <div class="chain-line done"></div>
+        <div class="chain-step"><div class="chain-circle done">🛵</div><div class="chain-lbl">ليفرور</div><div class="chain-time">08:10</div></div>
+        <div class="chain-line done"></div>
+        <div class="chain-step"><div class="chain-circle done">🏭</div><div class="chain-lbl">هوب نابل</div><div class="chain-time">08:45</div></div>
+        <div class="chain-line current"></div>
+        <div class="chain-step"><div class="chain-circle current">🚗</div><div class="chain-lbl">أنت</div><div class="chain-time">الآن</div></div>
+        <div class="chain-line"></div>
+        <div class="chain-step"><div class="chain-circle pending">🏭</div><div class="chain-lbl">هوب تونس</div><div class="chain-time">--:--</div></div>
+        <div class="chain-line"></div>
+        <div class="chain-step"><div class="chain-circle pending">🛵</div><div class="chain-lbl">ليفرور</div><div class="chain-time">--:--</div></div>
+      </div>
+    </div>
+
+    <div class="seg-tabs">
+      <div class="seg-tab active" onclick="segTab(this,'seg-custody')">📦 في العهدة (3)</div>
+      <div class="seg-tab" onclick="segTab(this,'seg-scan')">📱 سكان QR</div>
+    </div>
+
+    <!-- قائمة الكوليات -->
+    <div id="seg-custody">
+      <div class="parcel-item">
+        <div class="p-dot" style="background:var(--accent)"></div>
+        <div class="p-info"><div class="p-id">#WS-00845</div><div class="p-name">هوب نابل → هوب تونس 4</div><div class="p-route">📏 87 كم · وجهتك النهائية</div></div>
+        <div class="p-right"><div class="p-earn">3.0 DT</div><div class="p-tag" style="background:#f0f2ff;color:var(--accent)">في العهدة</div></div>
+      </div>
+      <div class="parcel-item">
+        <div class="p-dot" style="background:var(--accent)"></div>
+        <div class="p-info"><div class="p-id">#WS-00843</div><div class="p-name">هوب سليمان → هوب تونس 2</div><div class="p-route">📏 65 كم · في مسارك</div></div>
+        <div class="p-right"><div class="p-earn">2.5 DT</div><div class="p-tag" style="background:#f0f2ff;color:var(--accent)">في العهدة</div></div>
+      </div>
+      <div class="parcel-item">
+        <div class="p-dot" style="background:var(--accent)"></div>
+        <div class="p-info"><div class="p-id">#WS-00841</div><div class="p-name">هوب برج السرية → هوب تونس 1</div><div class="p-route">📏 72 كم · في مسارك</div></div>
+        <div class="p-right"><div class="p-earn">2.5 DT</div><div class="p-tag" style="background:#f0f2ff;color:var(--accent)">في العهدة</div></div>
+      </div>
+    </div>
+
+    <!-- سكان QR -->
+    <div id="seg-scan" style="display:none">
+      <div class="card">
+        <div class="card-title">استلام من هوب — سكان QR</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">الهوب يعرض QR الطرد — امسحه ليدخل عهدتك فوراً</div>
+        <div id="trans-scan-in-wrap" style="margin-bottom:10px"></div>
+        <div class="qr-box" onclick="initTransScanIn()" style="display:none">
+          <div class="qr-icon">📱</div>
+          <div style="font-size:14px;font-weight:700">امسح QR الطرد</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">اضغط للمحاكاة</div>
+        </div>
+        <div id="scan-in-result" style="display:none">
+          <div class="info-box info-green">✅ #WS-00851 دخل عهدتك — هوب المرسى → هوب تونس 4</div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0">
+            <span style="color:var(--text2)">عمولتك على هذا الكولي</span>
+            <span style="font-family:var(--mono);font-weight:700;color:var(--accent)">+2.5 DT</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">تسليم للهوب — سكان QR</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">عرض QR الطرد للهوب — بعد السكان يخرج من عهدتك</div>
+        <div id="trans-scan-out-wrap" style="margin-bottom:10px"></div>
+        <div class="qr-box" onclick="initTransScanOut()" style="display:none">
+          <div class="qr-icon">🏭</div>
+          <div style="font-size:14px;font-weight:700">اعرض QR للهوب</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">اضغط للمحاكاة</div>
+        </div>
+        <div id="scan-out-result" style="display:none">
+          <div class="info-box info-blue">📤 #WS-00845 خرج من عهدتك — انتقل لهوب تونس 4</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 4: طريق العودة ══ -->
+<div class="screen" id="s-return">
+  <div class="topbar">
+    <div class="back-btn" onclick="goHome()">←</div>
+    <div class="topbar-title">طريق العودة</div>
+    <div class="topbar-icon">↩️</div>
+  </div>
+  <div class="content">
+    <div class="info-box info-blue">🧠 السيستم سيعرض عليك كوليات في مسار عودتك أوتوماتيكياً</div>
+
+    <div class="card">
+      <div class="card-title">↩️ سجّل طريق عودتك</div>
+      <div class="field">
+        <label>نقطة العودة (الآن)</label>
+        <input type="text" value="تونس الكبرى" readonly style="color:var(--accent);font-weight:700">
+      </div>
+      <div class="field">
+        <label>وجهة العودة</label>
+        <select id="return-to">
+          <option>الهوارية</option>
+          <option>قليبية</option>
+          <option>نابل</option>
+          <option>منزل بوزلفة</option>
+          <option>برج السرية</option>
+          <option>سليمان</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>ساعة الانطلاق المتوقعة</label>
+        <input type="time" value="14:00">
+      </div>
+      <button class="btn-primary" onclick="registerReturn()">✅ تسجيل طريق العودة</button>
+    </div>
+
+    <!-- اقتراحات العودة -->
+    <div id="return-suggestions" style="display:none">
+      <div style="font-size:14px;font-weight:800;margin-bottom:12px;color:var(--text)">🎯 كوليات متاحة في مسار عودتك</div>
+
+      <div class="suggest-card">
+        <div class="sc-header">
+          <div class="sc-icon">📍</div>
+          <div>
+            <div class="sc-title">هوب برج السرية</div>
+            <div class="sc-route">في مسار عودتك المباشر · 0 كلم إضافية</div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">3 كوليات جاهزة وجهتها الهوارية</div>
+        <div class="sc-reward">
+          <div><div class="sc-reward-val">9 DT</div><div class="sc-reward-lbl">عمولة إجمالية</div></div>
+          <div class="sc-reward-detail"><div style="font-size:11px;color:var(--green)">في مسارك مباشرة ✓</div></div>
+        </div>
+        <div class="sc-actions">
+          <button class="btn-yellow" onclick="acceptReturn(this,'هوب برج السرية','3 كوليات','9 DT')">✅ قبول</button>
+          <button class="btn-ghost-sm" onclick="this.closest('.suggest-card').style.display='none'">تجاهل</button>
+        </div>
+      </div>
+
+      <div class="suggest-card">
+        <div class="sc-header">
+          <div class="sc-icon">📍</div>
+          <div>
+            <div class="sc-title">هوب قرمبالية</div>
+            <div class="sc-route">+6 كلم عن مسارك</div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">كولي واحد وجهته الهوارية</div>
+        <div class="sc-reward">
+          <div><div class="sc-reward-val">4 DT</div><div class="sc-reward-lbl">بونص الانحراف</div></div>
+          <div class="sc-reward-detail"><div style="font-size:11px;color:var(--text2)">+6 كلم إضافية</div></div>
+        </div>
+        <div class="sc-actions">
+          <button class="btn-yellow" onclick="acceptReturn(this,'هوب قرمبالية','كولي واحد','4 DT')">✅ قبول</button>
+          <button class="btn-ghost-sm" onclick="this.closest('.suggest-card').style.display='none'">تجاهل</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="success-screen" id="success-screen">
+  <div style="font-size:80px;margin-bottom:16px" id="s-icon">✅</div>
+  <div style="font-size:24px;font-weight:900;color:#fff;margin-bottom:8px" id="s-title">تم!</div>
+  <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:24px" id="s-sub">عملية ناجحة</div>
+  <button onclick="closeSuccess()" style="background:#fff;color:var(--accent);border:none;border-radius:14px;padding:14px 36px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer">متابعة</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// NAV
+function goScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if (id === 's-trip') {
+    setTimeout(() => {
+      const mapDiv = document.getElementById('trans-map');
+      if (mapDiv && tripActive) initTransMap('trans-map');
+    }, 200);
+  }
+}
+function goHome(){goScreen('s-home');}
+
+// LOGIN
+// ─── LOGIN ────────────────────────────────────
+async function doLogin(){
+  const u=document.getElementById('login-user').value.trim();
+  const p=document.getElementById('login-pass').value;
+  if(!u||!p){showToast('⚠️ أدخل بيانات الدخول');return;}
+  WsUI.showLoading(true);
+  const r=await WsAuth.login(u,p);
+  WsUI.showLoading(false);
+  if(r.status==='ok'){
+    if(r.user.role!=='transporteur'){window.location.href=r.redirect;return;}
+    document.querySelectorAll('.ws-user-name').forEach(el=>el.textContent=r.user.name);
+    goScreen('s-home');
+    loadTransBalance();
+  } else if(r.status==='pending'){
+    showToast('⏳ حسابك قيد المراجعة');
+  } else {
+    showToast('❌ '+(r.message||'بيانات الدخول خاطئة'));
+  }
+}
+
+async function loadTransBalance(){
+  const r=await WsFinance.getBalance();
+  const el=document.querySelector('.balance-val, .hbc-val');
+  if(el&&r.balance!==undefined) el.textContent=WsUI.formatDT(r.balance);
+}
+
+// ─── TRIP ─────────────────────────────────────
+
+// ─── QR Scanners للترانسبورتور ────────────────
+let _transScanIn  = null;
+let _transScanOut = null;
+let _transMap     = null;
+
+function initTransScanIn() {
+  if (_transScanIn) return;
+  _transScanIn = new WsQRScanner({
+    containerId: 'trans-scan-in-wrap',
+    onScan: async (parcelId) => {
+      WsUI.showLoading(true);
+      const r = await WsCustody.transfer(parcelId, 'transport_in');
+      WsUI.showLoading(false);
+      if (r.success) {
+        document.getElementById('scan-in-result').style.display='block';
+        document.getElementById('scan-in-parcel-id').textContent = parcelId;
+        showToast('✅ الطرد في عهدتك', 'success');
+        loadTransParcels();
+      } else {
+        showToast('❌ '+(r.message||'خطأ'), 'error');
+      }
+    },
+  });
+  _transScanIn.start();
+}
+
+function initTransScanOut() {
+  if (_transScanOut) return;
+  _transScanOut = new WsQRScanner({
+    containerId: 'trans-scan-out-wrap',
+    onScan: async (parcelId) => {
+      WsUI.showLoading(true);
+      const r = await WsCustody.transfer(parcelId, 'transport_out');
+      WsUI.showLoading(false);
+      if (r.success) {
+        document.getElementById('scan-out-result').style.display='block';
+        document.getElementById('scan-out-parcel-id').textContent = parcelId;
+        showToast('📤 الطرد سُلِّم للهوب', 'success');
+        loadTransParcels();
+      } else {
+        showToast('❌ '+(r.message||'خطأ'), 'error');
+      }
+    },
+  });
+  _transScanOut.start();
+}
+
+// legacy
+async function simulateScanIn()  { initTransScanIn(); }
+async function simulateScanOut() { initTransScanOut(); }
+
+// ─── خريطة الترانسبورتور مع الهوبات ──────────
+async function initTransMap(containerId) {
+  if (_transMap) return;
+  _transMap = new WsMap(containerId, 'transporteur');
+  _transMap.init();
+  await _transMap.loadForTransporteur();
+}
+
+let tripActive=false;
+function startTrip(){
+  const to=document.getElementById('trip-to').value;
+  if(!to){showToast('⚠️ أدخل الوجهة');return;}
+  tripActive=true;
+  document.getElementById('trip-form').style.display='none';
+  const nav=document.getElementById('trip-nav');
+  nav.style.display='flex';
+  nav.style.flexDirection='column';
+  nav.style.flex='1';
+  document.getElementById('nav-route-label').textContent='← '+to;
+  document.getElementById('nb-from').textContent='موقعك';
+  document.getElementById('nb-to').textContent=to;
+  document.getElementById('trip-card-idle').style.display='none';
+  document.getElementById('trip-card-active').style.display='block';
+  document.getElementById('trip-route-display').textContent='← '+to;
+  setTimeout(()=>{document.getElementById('home-suggestion').style.display='block';},3000);
+  showToast('✅ رحلتك مسجّلة — الهوبات في مسارك تظهر بالأصفر');
+  // تفعيل GPS
+  const pIds = (await WsParcels.list()).parcels?.map(p=>p.id)||[];
+  WsGPS.start(pIds);
+}
+
+function endTrip(){
+  tripActive=false;
+  document.getElementById('trip-form').style.display='block';
+  document.getElementById('trip-nav').style.display='none';
+  WsGPS.stop();
+  showToast('🏁 انتهت الرحلة');
+  goHome();
+}
+
+// HUB POPUP
+function showHubPopup(e,name,addr,onRoute,pendingSuggest,parcels,earn){
+  e.stopPropagation();
+  closeHubPopup();
+  const pin=e.currentTarget;
+  const mapRect=pin.closest('.nav-area').getBoundingClientRect();
+  const pRect=pin.getBoundingClientRect();
+  const popup=document.getElementById('hub-popup');
+  popup.style.top=(pRect.top-mapRect.top-15)+'px';
+  popup.style.left=(pRect.left-mapRect.left+14)+'px';
+  document.getElementById('hp-name').textContent=name;
+  document.getElementById('hp-addr').textContent=addr;
+  const badge=document.getElementById('hp-badge');
+  if(onRoute){badge.textContent='في مسارك';badge.style.background='rgba(245,158,11,0.2)';badge.style.color='var(--yellow)';}
+  else{badge.textContent='خارج مسارك';badge.style.background='rgba(255,255,255,0.08)';badge.style.color='rgba(255,255,255,0.4)';}
+  document.getElementById('hp-parcels').textContent=parcels;
+  const actions=document.getElementById('hp-actions');
+  if(onRoute&&parcels!=='وجهتك النهائية'){
+    actions.innerHTML=`<button onclick="pickupFromHub();closeHubPopup()" style="flex:1;background:rgba(245,158,11,0.15);color:var(--yellow);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:8px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer">+ هز الكوليات (${earn})</button>`;
+  } else if(parcels==='وجهتك النهائية'){
+    actions.innerHTML=`<div style="font-size:11px;color:rgba(255,255,255,0.4);text-align:center;width:100%">هذه وجهتك — سلّم هنا</div>`;
+  } else {
+    actions.innerHTML=`<div style="font-size:11px;color:rgba(255,255,255,0.4);text-align:center;width:100%">خارج مسارك — لن تُقترح</div>`;
+  }
+  popup.classList.add('show');
+}
+function closeHubPopup(){document.getElementById('hub-popup').classList.remove('show');}
+function pickupFromHub(){
+  const el=document.getElementById('nb-parcels');
+  if(el) el.textContent=parseInt(el.textContent||0)+2;
+  showToast('✅ +2 كوليات في عهدتك — +4 DT');
+}
+
+// SUGGESTION
+function acceptSuggestion(){
+  document.getElementById('home-suggestion').style.display='none';
+  showSuccess('✅ قبلت الاقتراح!','كولي الهوب أضيف لعهدتك · +4 DT بونص');
+}
+
+// RETURN
+function registerReturn(){
+  const to=document.getElementById('return-to')?.value||'تونس';
+  document.getElementById('return-suggestions').style.display='block';
+  showToast('✅ طريق عودتك لـ '+to+' مسجّل');
+}
+function acceptReturn(btn,hub,parcels,earn){
+  btn.closest('.suggest-card').style.display='none';
+  showSuccess('✅ قبلت!',hub+' · '+parcels+' · '+earn+' عمولة إضافية');
+}
+
+// ─── SCAN QR (يربط بالـ backend) ─────────────
+let _scanInId=null, _scanOutId=null;
+async function simulateScanIn(){
+  _scanInId='WS-00847'; // في الواقع: قراءة QR
+  document.getElementById('scan-in-result').style.display='block';
+  // تحديث حالة الطرد
+  const r=await WsParcels.updateStatus(_scanInId,'transit','استلام ترانسبورتور من هوب');
+  showToast(r.success?'✅ سكان ناجح — طرد جديد في عهدتك':'✅ سكان ناجح');
+}
+async function simulateScanOut(){
+  _scanOutId='WS-00847';
+  document.getElementById('scan-out-result').style.display='block';
+  const r=await WsParcels.updateStatus(_scanOutId,'hub','تسليم ترانسبورتور للهوب');
+  showToast(r.success?'📤 تم التسليم للهوب — خرج من عهدتك':'📤 تم التسليم للهوب');
+}
+
+// ─── BALANCE (حقيقي) ──────────────────────────
+function selWM(el){document.querySelectorAll('.wm-btn').forEach(b=>b.classList.remove('selected'));el.classList.add('selected');}
+async function doWithdraw(){
+  const a=document.getElementById('balance-amount').value;
+  if(!a||a<=0){showToast('⚠️ أدخل المبلغ');return;}
+  const methodEl=document.querySelector('.wm-btn.selected .wm-lbl');
+  const methodMap={'هوب قريبة':'hub_cash','بريد تونس':'poste','تحويل بنكي':'bank','D17':'d17'};
+  const method=methodMap[methodEl?.textContent?.trim()]||'hub_cash';
+  WsUI.showLoading(true);
+  const r=await WsFinance.requestWithdraw(parseFloat(a),method);
+  WsUI.showLoading(false);
+  showToast(r.success?'✅ '+r.message:'❌ '+r.message);
+  if(r.success) document.getElementById('balance-amount').value='';
+}
+
+// TABS
+function segTab(el,id){
+  el.closest('.seg-tabs').querySelectorAll('.seg-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const all=['seg-custody','seg-scan'];
+  all.forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});
+  const el2=document.getElementById(id);
+  if(el2)el2.style.display='block';
+}
+
+// SUCCESS & TOAST
+function showSuccess(title,sub){
+  const ss=document.getElementById('success-screen');
+  document.getElementById('s-title').textContent=title;
+  document.getElementById('s-sub').textContent=sub;
+  ss.classList.add('show');
+}
+function closeSuccess(){document.getElementById('success-screen').classList.remove('show');}
+function showToast(msg,type){WsUI.showToast(msg,type||'info');}
+
+// AUTO-INIT
+document.addEventListener('DOMContentLoaded',()=>{
+  const user=WsAuth.guard('transporteur');
+  if(user){
+    document.querySelectorAll('.ws-user-name').forEach(el=>el.textContent=user.name);
+    loadTransBalance();
+  }
+});
+</script>
+</body>
+</html>

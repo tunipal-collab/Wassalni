@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>وصّلني</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --accent:#1a56ff; --green:#10b981; --red:#ef4444;
+  --yellow:#f59e0b; --purple:#7c3aed; --orange:#f97316;
+  --bg:#f0f4ff; --white:#fff; --text:#0f172a;
+  --text2:#64748b; --border:#e2e8f5;
+  --font:'Tajawal',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:var(--font);background:#080c18;max-width:430px;margin:0 auto;min-height:100vh;overflow-x:hidden;}
+
+.screen{display:none;min-height:100vh;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* ══ LOGIN ══ */
+#s-login{
+  background:linear-gradient(160deg,#080c18 0%,#0f1f5c 55%,#1a3aaa 100%);
+  align-items:stretch;
+}
+.login-top{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:50px 28px 24px;
+}
+.login-logo{
+  width:82px;height:82px;
+  background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.18);
+  border-radius:24px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:42px;margin-bottom:16px;
+}
+.login-title{font-size:34px;font-weight:900;color:#fff;margin-bottom:6px;letter-spacing:-1px;}
+.login-sub{font-size:14px;color:rgba(255,255,255,0.4);}
+.login-card{
+  background:var(--white);
+  border-radius:28px 28px 0 0;
+  padding:28px 22px 36px;
+  box-shadow:0 -8px 40px rgba(0,0,0,0.3);
+}
+.login-card-title{font-size:19px;font-weight:900;color:var(--text);margin-bottom:20px;}
+.err-box{
+  background:#fff0f0;border:1px solid #fecaca;
+  border-radius:10px;padding:10px 14px;
+  font-size:13px;color:var(--red);
+  margin-bottom:14px;display:none;
+}
+
+/* ══ FIELDS ══ */
+.field{margin-bottom:14px;}
+.field label{
+  display:block;font-size:12px;font-weight:700;
+  color:var(--text2);margin-bottom:6px;
+  letter-spacing:0.3px;
+}
+.field label .opt{font-size:11px;font-weight:400;opacity:0.6;}
+.field input,.field select{
+  width:100%;background:var(--bg);
+  border:1.5px solid var(--border);
+  border-radius:12px;padding:13px 14px;
+  font-family:var(--font);font-size:15px;
+  color:var(--text);outline:none;
+  transition:border-color 0.2s;
+}
+.field input:focus,.field select:focus{border-color:var(--accent);}
+.field input::placeholder{color:#b0bec5;}
+
+/* upload */
+.upload-box{
+  border:2px dashed var(--border);
+  border-radius:12px;padding:18px;
+  text-align:center;cursor:pointer;
+  transition:all 0.2s;background:var(--bg);
+  position:relative;overflow:hidden;
+}
+.upload-box.has-file{border-color:var(--green);background:#f0fff8;}
+.upload-box input[type=file]{
+  position:absolute;inset:0;opacity:0;
+  cursor:pointer;width:100%;height:100%;
+}
+.upload-icon{font-size:28px;margin-bottom:6px;}
+.upload-label{font-size:13px;font-weight:700;color:var(--text2);}
+.upload-sub{font-size:11px;color:var(--text2);opacity:0.6;margin-top:3px;}
+.upload-done{font-size:13px;font-weight:700;color:var(--green);display:block;margin-top:6px;}
+
+/* buttons */
+.btn-main{
+  width:100%;padding:16px;border-radius:14px;
+  border:none;font-family:var(--font);
+  font-size:16px;font-weight:900;
+  cursor:pointer;transition:all 0.15s;margin-top:6px;
+}
+.btn-main:active{transform:scale(0.98);}
+.btn-accent{background:var(--accent);color:#fff;}
+.btn-outline{
+  background:transparent;color:var(--text2);
+  border:1.5px solid var(--border);margin-top:10px;font-size:14px;
+}
+
+/* vehicle */
+.vehicle-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px;}
+.v-btn{
+  background:var(--bg);border:2px solid var(--border);
+  border-radius:12px;padding:10px 4px;
+  text-align:center;cursor:pointer;transition:all 0.15s;
+}
+.v-btn.selected{border-color:var(--accent);background:#eef2ff;}
+.v-btn-icon{font-size:22px;margin-bottom:4px;}
+.v-btn-label{font-size:11px;font-weight:700;color:var(--text);}
+
+/* role cards */
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.role-card{
+  background:var(--bg);border:2px solid var(--border);
+  border-radius:16px;padding:18px 12px;
+  text-align:center;cursor:pointer;transition:all 0.15s;
+}
+.role-card:active{transform:scale(0.97);}
+.role-card-icon{font-size:32px;margin-bottom:8px;}
+.role-card-label{font-size:15px;font-weight:900;color:var(--text);}
+.role-card-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+
+/* reg screens */
+.reg-header{
+  padding:18px 20px;background:var(--white);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:10;
+}
+.back-btn{
+  width:38px;height:38px;border-radius:12px;
+  background:var(--bg);border:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;cursor:pointer;flex-shrink:0;
+}
+.reg-header-title{font-size:17px;font-weight:900;color:var(--text);}
+.reg-scroll{flex:1;overflow-y:auto;padding:20px 22px 50px;background:var(--white);}
+
+/* wait */
+#s-wait{
+  background:linear-gradient(160deg,#080c18,#0f1f5c);
+  color:white;align-items:center;justify-content:center;
+  text-align:center;padding:40px 28px;
+}
+.wait-icon{font-size:70px;margin-bottom:24px;animation:pulse 2s infinite;}
+@keyframes pulse{0%{transform:scale(1);}50%{transform:scale(1.08);}100%{transform:scale(1);}}
+</style>
+</head>
+<body>
+
+<!-- ══ شاشة الدخول ══ -->
+<div class="screen active" id="s-login">
+  <div class="login-top">
+    <div class="login-logo">🚚</div>
+    <h1 class="login-title">وصّلني</h1>
+    <p class="login-sub">نظام إدارة النقل الذكي</p>
+  </div>
+  <div class="login-card">
+    <p class="login-card-title">تسجيل الدخول</p>
+    <div class="err-box" id="login-err"></div>
+    <div class="field">
+      <label>رقم الهاتف</label>
+      <input type="tel" id="login-phone" placeholder="55 123 456" inputmode="numeric">
+    </div>
+    <div class="field">
+      <label>كلمة السر</label>
+      <input type="password" id="login-pass" placeholder="••••••••">
+    </div>
+    <button class="btn-main btn-accent" onclick="handleLogin()">دخول ←</button>
+    <button class="btn-main btn-outline" onclick="goScreen('s-role')">إنشاء حساب جديد</button>
+  </div>
+</div>
+
+<!-- ══ اختيار الدور ══ -->
+<div class="screen" id="s-role">
+  <div class="reg-header">
+    <div class="back-btn" onclick="goScreen('s-login')">←</div>
+    <span class="reg-header-title">أنا...</span>
+  </div>
+  <div class="reg-scroll">
+    <p style="font-size:14px;color:var(--text2);margin-bottom:16px;">اختر دورك في المنصة</p>
+    <div class="role-grid">
+      <div class="role-card" onclick="goScreen('s-reg-merchant')">
+        <div class="role-card-icon">🛒</div>
+        <div class="role-card-label">تاجر</div>
+        <div class="role-card-sub">Marchand</div>
+      </div>
+      <div class="role-card" onclick="goScreen('s-reg-livreur')">
+        <div class="role-card-icon">🛵</div>
+        <div class="role-card-label">ليفرور</div>
+        <div class="role-card-sub">Livreur</div>
+      </div>
+      <div class="role-card" onclick="goScreen('s-reg-transporteur')">
+        <div class="role-card-icon">🚗</div>
+        <div class="role-card-label">ترانسبورتور</div>
+        <div class="role-card-sub">Transporteur</div>
+      </div>
+      <div class="role-card" onclick="goScreen('s-reg-hub')">
+        <div class="role-card-icon">🏪</div>
+        <div class="role-card-label">هوب</div>
+        <div class="role-card-sub">Point relais</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ تسجيل التاجر ══ -->
+<div class="screen" id="s-reg-merchant">
+  <div class="reg-header">
+    <div class="back-btn" onclick="goScreen('s-role')">←</div>
+    <span class="reg-header-title">🛒 تسجيل تاجر</span>
+  </div>
+  <div class="reg-scroll">
+    <div class="field"><label>الاسم الكامل</label>
+      <input type="text" id="m-name" placeholder="محمد بن علي"></div>
+    <div class="field"><label>رقم الهاتف</label>
+      <input type="tel" id="m-phone" placeholder="55 123 456" inputmode="numeric"></div>
+    <div class="field"><label>المدينة</label>
+      <select id="m-city"><option value="">اختر المدينة</option>
+        <option>تونس</option><option>صفاقس</option><option>سوسة</option><option>القيروان</option>
+        <option>بنزرت</option><option>قابس</option><option>أريانة</option><option>بن عروس</option>
+        <option>منوبة</option><option>زغوان</option><option>نابل</option><option>الكاف</option>
+        <option>سليانة</option><option>قفصة</option><option>توزر</option><option>قبلي</option>
+        <option>مدنين</option><option>تطاوين</option><option>سيدي بوزيد</option><option>جندوبة</option>
+        <option>باجة</option><option>المهدية</option><option>المنستير</option>
+      </select></div>
+    <div class="field"><label>العنوان</label>
+      <input type="text" id="m-address" placeholder="الشارع، الحي..."></div>
+    <div class="field"><label>نوع النشاط التجاري</label>
+      <select id="m-activity"><option value="">اختر النشاط</option>
+        <option>ملابس وأزياء</option><option>إلكترونيات وهواتف</option>
+        <option>مستحضرات تجميل</option><option>أثاث ومنزل</option>
+        <option>أغذية ومشروبات</option><option>رياضة ولياقة</option>
+        <option>كتب ومستلزمات مكتبية</option><option>مجوهرات وإكسسوارات</option>
+        <option>ألعاب أطفال</option><option>أخرى</option>
+      </select></div>
+    <div class="field"><label>كلمة السر</label>
+      <input type="password" id="m-pass" placeholder="6 أحرف على الأقل"></div>
+    <button class="btn-main btn-accent" onclick="handleRegister('merchant')">إنشاء الحساب ←</button>
+    <button class="btn-main btn-outline" onclick="goScreen('s-role')">رجوع</button>
+  </div>
+</div>
+
+<!-- ══ تسجيل الليفرور ══ -->
+<div class="screen" id="s-reg-livreur">
+  <div class="reg-header">
+    <div class="back-btn" onclick="goScreen('s-role')">←</div>
+    <span class="reg-header-title">🛵 تسجيل ليفرور</span>
+  </div>
+  <div class="reg-scroll">
+    <div class="field"><label>الاسم الكامل</label>
+      <input type="text" id="l-name" placeholder="محمد بن علي"></div>
+    <div class="field"><label>رقم الهاتف</label>
+      <input type="tel" id="l-phone" placeholder="55 123 456" inputmode="numeric"></div>
+    <div class="field"><label>المدينة</label>
+      <select id="l-city"><option value="">اختر المدينة</option>
+        <option>تونس</option><option>صفاقس</option><option>سوسة</option><option>القيروان</option>
+        <option>بنزرت</option><option>قابس</option><option>أريانة</option><option>بن عروس</option>
+        <option>منوبة</option><option>زغوان</option><option>نابل</option><option>الكاف</option>
+        <option>سليانة</option><option>قفصة</option><option>توزر</option><option>قبلي</option>
+        <option>مدنين</option><option>تطاوين</option><option>سيدي بوزيد</option><option>جندوبة</option>
+        <option>باجة</option><option>المهدية</option><option>المنستير</option>
+      </select></div>
+    <div class="field">
+      <label>نوع وسيلة النقل</label>
+      <div class="vehicle-grid" id="l-vehicle-grid">
+        <div class="v-btn" data-val="bike" onclick="selectVehicle('l',this)"><div class="v-btn-icon">🚲</div><div class="v-btn-label">دراجة</div></div>
+        <div class="v-btn" data-val="moto" onclick="selectVehicle('l',this)"><div class="v-btn-icon">🛵</div><div class="v-btn-label">موتو</div></div>
+        <div class="v-btn" data-val="car" onclick="selectVehicle('l',this)"><div class="v-btn-icon">🚗</div><div class="v-btn-label">سيارة</div></div>
+        <div class="v-btn" data-val="van" onclick="selectVehicle('l',this)"><div class="v-btn-icon">🚐</div><div class="v-btn-label">فان</div></div>
+      </div>
+      <input type="hidden" id="l-vehicle">
+    </div>
+    <div class="field">
+      <label>صورة بطاقة التعريف (CIN)</label>
+      <div class="upload-box" id="l-cin-box">
+        <input type="file" accept="image/*" id="l-cin" onchange="handleUpload('l-cin','l-cin-box','l-cin-done')">
+        <div class="upload-icon">🪪</div>
+        <div class="upload-label">اضغط لرفع صورة CIN</div>
+        <div class="upload-sub">JPG أو PNG</div>
+      </div>
+      <span class="upload-done" id="l-cin-done" style="display:none;"></span>
+    </div>
+    <div class="field" id="l-gray-field" style="display:none;">
+      <label>صورة البطاقة الرمادية <span class="opt">(اختياري للدراجة)</span></label>
+      <div class="upload-box" id="l-gray-box">
+        <input type="file" accept="image/*" id="l-gray" onchange="handleUpload('l-gray','l-gray-box','l-gray-done')">
+        <div class="upload-icon">📄</div>
+        <div class="upload-label">اضغط لرفع البطاقة الرمادية</div>
+        <div class="upload-sub">JPG أو PNG</div>
+      </div>
+      <span class="upload-done" id="l-gray-done" style="display:none;"></span>
+    </div>
+    <div class="field"><label>كلمة السر</label>
+      <input type="password" id="l-pass" placeholder="6 أحرف على الأقل"></div>
+    <button class="btn-main btn-accent" onclick="handleRegister('livreur')">إرسال طلب التفعيل ←</button>
+    <button class="btn-main btn-outline" onclick="goScreen('s-role')">رجوع</button>
+  </div>
+</div>
+
+<!-- ══ تسجيل الترانسبورتور ══ -->
+<div class="screen" id="s-reg-transporteur">
+  <div class="reg-header">
+    <div class="back-btn" onclick="goScreen('s-role')">←</div>
+    <span class="reg-header-title">🚗 تسجيل ترانسبورتور</span>
+  </div>
+  <div class="reg-scroll">
+    <div class="field"><label>الاسم الكامل</label>
+      <input type="text" id="t-name" placeholder="محمد بن علي"></div>
+    <div class="field"><label>رقم الهاتف</label>
+      <input type="tel" id="t-phone" placeholder="55 123 456" inputmode="numeric"></div>
+    <div class="field">
+      <label>نوع وسيلة النقل</label>
+      <div class="vehicle-grid" id="t-vehicle-grid">
+        <div class="v-btn" data-val="car" onclick="selectVehicle('t',this)"><div class="v-btn-icon">🚗</div><div class="v-btn-label">عائلية</div></div>
+        <div class="v-btn" data-val="commercial" onclick="selectVehicle('t',this)"><div class="v-btn-icon">🚐</div><div class="v-btn-label">كومرسيال</div></div>
+        <div class="v-btn" data-val="truck" onclick="selectVehicle('t',this)"><div class="v-btn-icon">🚚</div><div class="v-btn-label">شاحنة</div></div>
+        <div class="v-btn" data-val="bike" onclick="selectVehicle('t',this)"><div class="v-btn-icon">🏍️</div><div class="v-btn-label">دراجة</div></div>
+      </div>
+      <input type="hidden" id="t-vehicle">
+    </div>
+    <div class="field">
+      <label>صورة بطاقة التعريف (CIN) — إجبارية</label>
+      <div class="upload-box" id="t-cin-box">
+        <input type="file" accept="image/*" id="t-cin" onchange="handleUpload('t-cin','t-cin-box','t-cin-done')">
+        <div class="upload-icon">🪪</div>
+        <div class="upload-label">اضغط لرفع صورة CIN</div>
+        <div class="upload-sub">JPG أو PNG</div>
+      </div>
+      <span class="upload-done" id="t-cin-done" style="display:none;"></span>
+    </div>
+    <div class="field">
+      <label>صورة البطاقة الرمادية — إجبارية</label>
+      <div class="upload-box" id="t-gray-box">
+        <input type="file" accept="image/*" id="t-gray" onchange="handleUpload('t-gray','t-gray-box','t-gray-done')">
+        <div class="upload-icon">📄</div>
+        <div class="upload-label">اضغط لرفع البطاقة الرمادية</div>
+        <div class="upload-sub">JPG أو PNG</div>
+      </div>
+      <span class="upload-done" id="t-gray-done" style="display:none;"></span>
+    </div>
+    <div class="field"><label>كلمة السر</label>
+      <input type="password" id="t-pass" placeholder="6 أحرف على الأقل"></div>
+    <button class="btn-main btn-accent" onclick="handleRegister('transporteur')">إرسال طلب التفعيل ←</button>
+    <button class="btn-main btn-outline" onclick="goScreen('s-role')">رجوع</button>
+  </div>
+</div>
+
+<!-- ══ تسجيل الهوب ══ -->
+<div class="screen" id="s-reg-hub">
+  <div class="reg-header">
+    <div class="back-btn" onclick="goScreen('s-role')">←</div>
+    <span class="reg-header-title">🏪 تسجيل نقطة تسليم</span>
+  </div>
+  <div class="reg-scroll">
+    <div class="field"><label>اسم الهوب / المحل</label>
+      <input type="text" id="h-name" placeholder="مثال: متجر الأمل"></div>
+    <div class="field"><label>المدينة</label>
+      <select id="h-city"><option value="">اختر المدينة</option>
+        <option>تونس</option><option>صفاقس</option><option>سوسة</option><option>القيروان</option>
+        <option>بنزرت</option><option>قابس</option><option>أريانة</option><option>بن عروس</option>
+        <option>منوبة</option><option>زغوان</option><option>نابل</option><option>الكاف</option>
+        <option>سليانة</option><option>قفصة</option><option>توزر</option><option>قبلي</option>
+        <option>مدنين</option><option>تطاوين</option><option>سيدي بوزيد</option><option>جندوبة</option>
+        <option>باجة</option><option>المهدية</option><option>المنستير</option>
+      </select></div>
+    <div class="field"><label>عنوان الهوب</label>
+      <input type="text" id="h-address" placeholder="الشارع، الحي، الرقم..."></div>
+    <div class="field"><label>رقم الهاتف</label>
+      <input type="tel" id="h-phone" placeholder="55 123 456" inputmode="numeric"></div>
+    <div class="field"><label>رقم هاتف 2 <span class="opt">(اختياري)</span></label>
+      <input type="tel" id="h-phone2" placeholder="55 987 654" inputmode="numeric"></div>
+    <div class="field"><label>كلمة السر</label>
+      <input type="password" id="h-pass" placeholder="6 أحرف على الأقل"></div>
+    <button class="btn-main btn-accent" onclick="handleRegister('hub')">إرسال طلب التفعيل ←</button>
+    <button class="btn-main btn-outline" onclick="goScreen('s-role')">رجوع</button>
+  </div>
+</div>
+
+<!-- ══ شاشة الانتظار ══ -->
+<div class="screen" id="s-wait">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;background:linear-gradient(160deg,#080c18,#0f1f5c);text-align:center;">
+    <div class="wait-icon">⏳</div>
+    <h2 style="font-size:24px;font-weight:900;color:white;margin-bottom:12px;">طلبك قيد المراجعة</h2>
+    <p style="font-size:15px;color:rgba(255,255,255,0.55);line-height:1.8;">
+      شكراً لتسجيلك في وصّلني.<br>
+      حسابك الآن لدى الإدارة للمراجعة.<br>
+      سنتواصل معك قريباً.
+    </p>
+    <button class="btn-main btn-accent" style="margin-top:36px;max-width:260px;" onclick="goScreen('s-login')">العودة للرئيسية</button>
+  </div>
+</div>
+
+<div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:50px;font-size:14px;font-weight:700;z-index:9999;opacity:0;transition:opacity 0.3s;white-space:nowrap;max-width:90vw;color:white;box-shadow:0 4px 20px rgba(0,0,0,0.2);font-family:'Tajawal',sans-serif;"></div>
+
+<script src="/wassalni-api.js"></script>
+<script>
+// ══ Navigation ══
+function goScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ══ Vehicle selector ══
+function selectVehicle(prefix, el) {
+  document.querySelectorAll(`#${prefix}-vehicle-grid .v-btn`).forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById(`${prefix}-vehicle`).value = el.dataset.val;
+  // ليفرور: إظهار البطاقة الرمادية إذا مش دراجة
+  if (prefix === 'l') {
+    document.getElementById('l-gray-field').style.display = el.dataset.val === 'bike' ? 'none' : 'block';
+  }
+}
+
+// ══ Upload handler ══
+function handleUpload(inputId, boxId, doneId) {
+  const file = document.getElementById(inputId).files[0];
+  if (!file) return;
+  document.getElementById(boxId).classList.add('has-file');
+  const done = document.getElementById(doneId);
+  done.style.display = 'block';
+  done.textContent = '✅ ' + file.name;
+}
+
+// ══ Toast ══
+function showToast(msg, type = 'info') {
+  const colors = { success:'#10b981', error:'#ef4444', info:'#1a56ff' };
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = colors[type] || colors.info;
+  el.style.opacity = '1';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.style.opacity = '0', 3200);
+}
+
+function showLoading(show) {
+  let el = document.getElementById('ws-loading');
+  if (!el && show) {
+    el = document.createElement('div');
+    el.id = 'ws-loading';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9998;';
+    el.innerHTML = '<div style="background:white;border-radius:16px;padding:20px 32px;font-family:Tajawal,sans-serif;font-size:16px;font-weight:700">⏳ جاري الإرسال...</div>';
+    document.body.appendChild(el);
+  }
+  if (el) el.style.display = show ? 'flex' : 'none';
+}
+
+// ══ LOGIN ══
+async function handleLogin() {
+  const phone = document.getElementById('login-phone').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const errBox = document.getElementById('login-err');
+  errBox.style.display = 'none';
+
+  if (!phone || !pass) { showToast('⚠️ أدخل رقم الهاتف وكلمة السر', 'error'); return; }
+
+  showLoading(true);
+  const result = await WsAuth.login(phone, pass);
+  showLoading(false);
+
+  if (result.status === 'pending') {
+    goScreen('s-wait');
+  } else if (result.status === 'ok') {
+    window.location.href = result.redirect;
+  } else {
+    errBox.style.display = 'block';
+    errBox.textContent = '❌ ' + (result.message || 'رقم الهاتف أو كلمة السر غير صحيحة');
+  }
+}
+
+// ══ REGISTER ══
+async function handleRegister(role) {
+  let data = { role };
+
+  if (role === 'merchant') {
+    const name=document.getElementById('m-name').value.trim();
+    const phone=document.getElementById('m-phone').value.trim();
+    const city=document.getElementById('m-city').value;
+    const address=document.getElementById('m-address').value.trim();
+    const activity=document.getElementById('m-activity').value;
+    const pass=document.getElementById('m-pass').value;
+    if (!name||!phone||!city||!address||!activity||!pass) { showToast('⚠️ أكمل جميع الحقول','error'); return; }
+    if (pass.length<6) { showToast('⚠️ كلمة السر 6 أحرف على الأقل','error'); return; }
+    Object.assign(data,{name,phone,city,address,activity,password:pass});
+  }
+
+  else if (role === 'livreur') {
+    const name=document.getElementById('l-name').value.trim();
+    const phone=document.getElementById('l-phone').value.trim();
+    const city=document.getElementById('l-city').value;
+    const vehicle=document.getElementById('l-vehicle').value;
+    const pass=document.getElementById('l-pass').value;
+    const cinFile=document.getElementById('l-cin').files[0];
+    if (!name||!phone||!city||!vehicle||!pass||!cinFile) { showToast('⚠️ أكمل جميع الحقول وارفع صورة CIN','error'); return; }
+    if (pass.length<6) { showToast('⚠️ كلمة السر 6 أحرف على الأقل','error'); return; }
+    Object.assign(data,{name,phone,city,vehicleType:vehicle,password:pass});
+  }
+
+  else if (role === 'transporteur') {
+    const name=document.getElementById('t-name').value.trim();
+    const phone=document.getElementById('t-phone').value.trim();
+    const vehicle=document.getElementById('t-vehicle').value;
+    const pass=document.getElementById('t-pass').value;
+    const cinFile=document.getElementById('t-cin').files[0];
+    const grayFile=document.getElementById('t-gray').files[0];
+    if (!name||!phone||!vehicle||!pass) { showToast('⚠️ أكمل جميع الحقول','error'); return; }
+    if (!cinFile) { showToast('⚠️ صورة CIN إجبارية','error'); return; }
+    if (!grayFile) { showToast('⚠️ صورة البطاقة الرمادية إجبارية','error'); return; }
+    if (pass.length<6) { showToast('⚠️ كلمة السر 6 أحرف على الأقل','error'); return; }
+    Object.assign(data,{name,phone,vehicleType:vehicle,password:pass});
+  }
+
+  else if (role === 'hub') {
+    const name=document.getElementById('h-name').value.trim();
+    const city=document.getElementById('h-city').value;
+    const address=document.getElementById('h-address').value.trim();
+    const phone=document.getElementById('h-phone').value.trim();
+    const phone2=document.getElementById('h-phone2').value.trim();
+    const pass=document.getElementById('h-pass').value;
+    if (!name||!city||!address||!phone||!pass) { showToast('⚠️ أكمل جميع الحقول الإجبارية','error'); return; }
+    if (pass.length<6) { showToast('⚠️ كلمة السر 6 أحرف على الأقل','error'); return; }
+    Object.assign(data,{name,city,address,phone,phone2:phone2||'',password:pass});
+  }
+
+  showLoading(true);
+  const result = await WsAuth.register(data.name, data.phone||'', data.password, role, data);
+  showLoading(false);
+
+  if (result.success) {
+    if (result.token) {
+      window.location.href = result.redirect || '/merchant-app.html';
+    } else {
+      goScreen('s-wait');
+    }
+  } else {
+    showToast(result.message || 'خطأ في التسجيل', 'error');
+  }
+}
+
+// Enter key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('s-login').classList.contains('active')) handleLogin();
+});
+</script>
+</body>
+</html>

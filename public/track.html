@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>وصّلني — تتبع طردك</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --accent:#1a56ff; --green:#10b981; --red:#ef4444;
+  --yellow:#f59e0b; --orange:#f97316; --purple:#7c3aed;
+  --bg:#f0f4ff; --white:#fff; --text:#0f172a;
+  --text2:#64748b; --border:#e2e8f5;
+  --mono:'JetBrains Mono',monospace;
+  --font:'Tajawal',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto;}
+
+/* ── HEADER ── */
+.header{
+  background:linear-gradient(135deg,#080c18,#1a56ff);
+  padding:20px 20px 28px;
+  color:white;
+}
+.header-logo{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.logo-box{width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-name{font-size:18px;font-weight:900;}
+.header-title{font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:6px;}
+.parcel-id-display{
+  font-family:var(--mono);font-size:24px;font-weight:700;
+  color:#fff;letter-spacing:1px;
+}
+
+/* ── SEARCH ── */
+.search-wrap{
+  background:var(--white);
+  border-radius:20px 20px 0 0;
+  margin-top:-12px;
+  padding:20px;
+}
+.search-box{
+  display:flex;gap:8px;
+}
+.search-input{
+  flex:1;background:var(--bg);border:1.5px solid var(--border);
+  border-radius:12px;padding:13px 14px;
+  font-family:var(--mono);font-size:15px;color:var(--text);
+  outline:none;text-transform:uppercase;
+  transition:border-color 0.2s;
+}
+.search-input:focus{border-color:var(--accent);}
+.search-input::placeholder{font-family:var(--font);text-transform:none;color:#b0bec5;font-size:14px;}
+.search-btn{
+  background:var(--accent);color:white;border:none;
+  border-radius:12px;padding:13px 18px;
+  font-family:var(--font);font-size:15px;font-weight:700;
+  cursor:pointer;white-space:nowrap;
+}
+.search-btn:active{transform:scale(0.97);}
+
+/* ── STATUS CARD ── */
+.status-card{
+  background:var(--white);margin:0 0 12px;
+  border-radius:16px;overflow:hidden;
+  border:1px solid var(--border);
+  box-shadow:0 2px 12px rgba(0,0,0,0.06);
+}
+.status-header{
+  padding:16px 18px;display:flex;align-items:center;gap:14px;
+}
+.status-icon-wrap{
+  width:52px;height:52px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;flex-shrink:0;
+}
+.status-info{flex:1;}
+.status-label{font-size:18px;font-weight:900;margin-bottom:3px;}
+.status-sub{font-size:13px;color:var(--text2);}
+.status-progress{
+  padding:0 18px 16px;
+}
+.progress-track{
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;
+}
+.progress-track::before{
+  content:'';position:absolute;top:14px;right:14px;left:14px;
+  height:3px;background:var(--border);z-index:0;
+}
+.progress-fill{
+  position:absolute;top:14px;right:14px;
+  height:3px;background:var(--accent);z-index:1;
+  transition:width 0.6s ease;
+}
+.prog-step{
+  display:flex;flex-direction:column;align-items:center;
+  gap:6px;z-index:2;position:relative;
+}
+.prog-dot{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;border:3px solid var(--border);
+  background:var(--white);transition:all 0.3s;
+}
+.prog-dot.done{background:var(--accent);border-color:var(--accent);color:white;}
+.prog-dot.active{background:var(--white);border-color:var(--accent);box-shadow:0 0 0 4px rgba(26,86,255,0.15);}
+.prog-lbl{font-size:10px;color:var(--text2);font-weight:700;text-align:center;max-width:48px;}
+.prog-lbl.active{color:var(--accent);}
+
+/* ── INFO CARDS ── */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.info-box{
+  background:var(--white);border-radius:14px;
+  padding:14px;border:1px solid var(--border);
+}
+.info-box-lbl{font-size:11px;color:var(--text2);font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.3px;}
+.info-box-val{font-size:15px;font-weight:800;color:var(--text);}
+.info-box-val.mono{font-family:var(--mono);}
+
+/* ── MAP ── */
+.map-wrap{
+  background:var(--white);border-radius:16px;
+  overflow:hidden;border:1px solid var(--border);
+  margin-bottom:12px;
+}
+.map-header{padding:12px 16px;font-size:13px;font-weight:800;border-bottom:1px solid var(--border);}
+#parcel-map{height:220px;}
+
+/* ── TIMELINE ── */
+.timeline-wrap{
+  background:var(--white);border-radius:16px;
+  padding:16px;border:1px solid var(--border);
+  margin-bottom:12px;
+}
+.timeline-title{font-size:14px;font-weight:800;margin-bottom:14px;}
+.tl-item{
+  display:flex;gap:12px;position:relative;
+  padding-bottom:14px;
+}
+.tl-item:last-child{padding-bottom:0;}
+.tl-item:not(:last-child)::before{
+  content:'';position:absolute;
+  right:11px;top:24px;bottom:0;
+  width:2px;background:var(--border);
+}
+.tl-dot{
+  width:24px;height:24px;border-radius:50%;
+  flex-shrink:0;display:flex;align-items:center;
+  justify-content:center;font-size:11px;
+  border:2px solid var(--border);background:var(--white);
+  position:relative;z-index:1;
+}
+.tl-dot.done{background:var(--accent);border-color:var(--accent);color:white;}
+.tl-content{flex:1;}
+.tl-label{font-size:13px;font-weight:700;margin-bottom:2px;}
+.tl-note{font-size:12px;color:var(--text2);}
+.tl-time{font-size:11px;color:var(--text2);font-family:var(--mono);margin-top:2px;}
+
+/* ── COD BANNER ── */
+.cod-banner{
+  background:linear-gradient(135deg,#f0fdf4,#dcfce7);
+  border:1.5px solid #86efac;
+  border-radius:14px;padding:14px 16px;
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:12px;
+}
+.cod-icon{font-size:28px;}
+.cod-info{flex:1;}
+.cod-lbl{font-size:12px;color:#16a34a;font-weight:700;}
+.cod-val{font-family:var(--mono);font-size:22px;font-weight:700;color:#15803d;}
+
+/* ── EMPTY STATE ── */
+.empty-state{
+  text-align:center;padding:48px 24px;
+}
+.empty-icon{font-size:64px;margin-bottom:16px;}
+.empty-title{font-size:18px;font-weight:900;margin-bottom:8px;}
+.empty-sub{font-size:14px;color:var(--text2);line-height:1.7;}
+
+/* ── ERROR STATE ── */
+.error-state{
+  background:#fff0f0;border:1.5px solid #fecaca;
+  border-radius:14px;padding:16px;text-align:center;
+  margin-bottom:12px;
+}
+.error-icon{font-size:36px;margin-bottom:8px;}
+.error-msg{font-size:14px;color:var(--red);font-weight:700;}
+
+/* ── LOADING ── */
+.loading-wrap{text-align:center;padding:40px 20px;}
+.loader{
+  width:40px;height:40px;border-radius:50%;
+  border:3px solid var(--border);
+  border-top-color:var(--accent);
+  animation:spin 0.8s linear infinite;
+  margin:0 auto 12px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── FOOTER ── */
+.footer{
+  text-align:center;padding:20px;
+  font-size:12px;color:var(--text2);
+}
+.footer a{color:var(--accent);font-weight:700;text-decoration:none;}
+
+/* content area */
+.content{padding:16px;}
+
+/* hidden */
+.hidden{display:none;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">
+    <div class="logo-box">🚚</div>
+    <div class="logo-name">وصّلني</div>
+  </div>
+  <div class="header-title">تتبع طردك</div>
+  <div class="parcel-id-display" id="header-parcel-id">— — —</div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- SEARCH -->
+  <div class="search-wrap" style="margin-bottom:12px;border-radius:16px;">
+    <div class="search-box">
+      <input type="text" id="track-input" class="search-input"
+        placeholder="أدخل رقم الطرد — WS-XXXXX"
+        oninput="this.value=this.value.toUpperCase().replace(/[^WS0-9\-]/g,'')"
+        maxlength="10">
+      <button class="search-btn" onclick="trackParcel()">تتبع</button>
+    </div>
+  </div>
+
+  <!-- RESULT AREA -->
+  <div id="result-area">
+    <!-- حالة البداية -->
+    <div class="empty-state" id="state-empty">
+      <div class="empty-icon">📦</div>
+      <div class="empty-title">تتبع طردك بسهولة</div>
+      <div class="empty-sub">أدخل رقم الطرد الذي أرسله لك التاجر<br>للاطلاع على حالته ومكانه</div>
+    </div>
+
+    <!-- تحميل -->
+    <div class="loading-wrap hidden" id="state-loading">
+      <div class="loader"></div>
+      <div style="font-size:14px;color:var(--text2);">جاري البحث...</div>
+    </div>
+
+    <!-- خطأ -->
+    <div class="error-state hidden" id="state-error">
+      <div class="error-icon">❌</div>
+      <div class="error-msg" id="error-msg">الطرد غير موجود</div>
+    </div>
+
+    <!-- نتيجة -->
+    <div id="state-result" class="hidden">
+
+      <!-- بطاقة الحالة -->
+      <div class="status-card">
+        <div class="status-header">
+          <div class="status-icon-wrap" id="res-status-icon-wrap">
+            <span id="res-status-emoji">📦</span>
+          </div>
+          <div class="status-info">
+            <div class="status-label" id="res-status-label">—</div>
+            <div class="status-sub" id="res-status-sub">—</div>
+          </div>
+        </div>
+        <!-- شريط التقدم -->
+        <div class="status-progress">
+          <div class="progress-track">
+            <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+            <div class="prog-step">
+              <div class="prog-dot" id="pd-0">📦</div>
+              <div class="prog-lbl" id="pl-0">تم الإنشاء</div>
+            </div>
+            <div class="prog-step">
+              <div class="prog-dot" id="pd-1">🛵</div>
+              <div class="prog-lbl" id="pl-1">في الطريق</div>
+            </div>
+            <div class="prog-step">
+              <div class="prog-dot" id="pd-2">🏪</div>
+              <div class="prog-lbl" id="pl-2">في الهوب</div>
+            </div>
+            <div class="prog-step">
+              <div class="prog-dot" id="pd-3">🚪</div>
+              <div class="prog-lbl" id="pl-3">للتسليم</div>
+            </div>
+            <div class="prog-step">
+              <div class="prog-dot" id="pd-4">✅</div>
+              <div class="prog-lbl" id="pl-4">تم التسليم</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- مبلغ COD -->
+      <div class="cod-banner hidden" id="res-cod-banner">
+        <div class="cod-icon">💵</div>
+        <div class="cod-info">
+          <div class="cod-lbl">المبلغ عند الاستلام (COD)</div>
+          <div class="cod-val" id="res-cod-val">0 DT</div>
+        </div>
+      </div>
+
+      <!-- معلومات -->
+      <div class="info-grid">
+        <div class="info-box">
+          <div class="info-box-lbl">رقم الطرد</div>
+          <div class="info-box-val mono" id="res-id">—</div>
+        </div>
+        <div class="info-box">
+          <div class="info-box-lbl">المدينة</div>
+          <div class="info-box-val" id="res-city">—</div>
+        </div>
+        <div class="info-box">
+          <div class="info-box-lbl">تاريخ الإنشاء</div>
+          <div class="info-box-val" id="res-date" style="font-size:12px;">—</div>
+        </div>
+        <div class="info-box">
+          <div class="info-box-lbl">محاولات التسليم</div>
+          <div class="info-box-val mono" id="res-attempts">0 / 3</div>
+        </div>
+      </div>
+
+      <!-- الخريطة -->
+      <div class="map-wrap hidden" id="res-map-wrap">
+        <div class="map-header">📍 الموقع الحالي</div>
+        <div id="parcel-map"></div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="timeline-wrap">
+        <div class="timeline-title">📋 سجل الرحلة</div>
+        <div id="res-timeline">
+          <div style="text-align:center;opacity:0.5;padding:10px">لا توجد أحداث بعد</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    وصّلني — منصة توصيل ذكية 🚚<br>
+    <a href="/">العودة للرئيسية</a>
+  </div>
+
+</div>
+
+<script>
+// ─── Config ───────────────────────────────────
+const API_BASE = window.location.origin + '/api';
+let _map = null;
+let _marker = null;
+
+// ─── Status Config ────────────────────────────
+const STATUS_CONFIG = {
+  created:   { label:'تم إنشاء الطرد',   sub:'في انتظار الاستلام',        emoji:'📦', color:'#94a3b8', step:0 },
+  pickup:    { label:'في الاستلام',       sub:'الليفرور في طريقه إليك',    emoji:'🛵', color:'#6366f1', step:1 },
+  transit:   { label:'في الطريق',         sub:'الطرد في حركة',             emoji:'🚗', color:'#1a56ff', step:1 },
+  hub:       { label:'في نقطة تسليم',     sub:'الطرد في الهوب',            emoji:'🏪', color:'#f59e0b', step:2 },
+  delivery:  { label:'في طريقه إليك!',   sub:'الليفرور قادم الآن',        emoji:'🛵', color:'#f97316', step:3 },
+  delivered: { label:'تم التسليم ✓',      sub:'استلمت طردك بنجاح',         emoji:'✅', color:'#10b981', step:4 },
+  attempt:   { label:'محاولة فاشلة',      sub:'سيعاود المحاولة قريباً',    emoji:'🔴', color:'#ef4444', step:3 },
+  return:    { label:'قيد الإرجاع',       sub:'سيتم إرجاعه للتاجر',        emoji:'↩️', color:'#ff3d6b', step:1 },
+  cancelled: { label:'ملغى',              sub:'تم إلغاء هذا الطرد',        emoji:'❌', color:'#94a3b8', step:0 },
+};
+
+const TIMELINE_LABELS = {
+  created:   'تم إنشاء الطرد',
+  pickup:    'استلام الليفرور',
+  transit:   'في الطريق',
+  hub:       'وصل للهوب',
+  delivery:  'للتسليم النهائي',
+  delivered: 'تم التسليم',
+  attempt:   'محاولة تسليم فاشلة',
+  return:    'بدء الإرجاع',
+  redirected:'إعادة توجيه',
+};
+
+// ─── Show / Hide ──────────────────────────────
+function showState(name) {
+  ['empty','loading','error','result'].forEach(s => {
+    document.getElementById('state-'+s).classList.add('hidden');
+  });
+  document.getElementById('state-'+name).classList.remove('hidden');
+}
+
+// ─── Track ────────────────────────────────────
+async function trackParcel() {
+  const input = document.getElementById('track-input');
+  const id    = input.value.trim();
+  if (!id || !id.startsWith('WS-')) {
+    showError('أدخل رقم طرد صحيح — مثال: WS-12345');
+    return;
+  }
+
+  showState('loading');
+  document.getElementById('header-parcel-id').textContent = id;
+
+  try {
+    const res  = await fetch(`${API_BASE}/location/parcel/${id}`);
+    const data = await res.json();
+
+    if (!data.success) {
+      showError(data.message || 'الطرد غير موجود');
+      return;
+    }
+
+    renderResult(id, data);
+  } catch (e) {
+    showError('تعذر الاتصال بالخادم — تأكد من اتصالك بالإنترنت');
+  }
+}
+
+function showError(msg) {
+  document.getElementById('error-msg').textContent = msg;
+  showState('error');
+}
+
+// ─── Render Result ────────────────────────────
+function renderResult(parcelId, data) {
+  const cfg = STATUS_CONFIG[data.status] || STATUS_CONFIG.created;
+
+  // بطاقة الحالة
+  const iconWrap = document.getElementById('res-status-icon-wrap');
+  iconWrap.style.background = cfg.color + '22';
+  document.getElementById('res-status-emoji').textContent  = cfg.emoji;
+  document.getElementById('res-status-label').textContent  = cfg.label;
+  document.getElementById('res-status-label').style.color  = cfg.color;
+  document.getElementById('res-status-sub').textContent    = cfg.sub;
+
+  // شريط التقدم
+  updateProgress(cfg.step, data.status);
+
+  // معلومات
+  document.getElementById('res-id').textContent   = parcelId;
+  document.getElementById('res-city').textContent = data.recipientCity || '—';
+  document.getElementById('res-date').textContent = formatDate(data.timeline?.[0]?.timestamp);
+  document.getElementById('res-attempts').textContent =
+    (data.timeline?.filter(t => t.status === 'attempt').length || 0) + ' / 3';
+
+  // COD — يظهر فقط إذا لم يُسلَّم بعد
+  if (data.codAmount > 0 && data.status !== 'delivered') {
+    document.getElementById('res-cod-val').textContent = data.codAmount + ' DT';
+    document.getElementById('res-cod-banner').classList.remove('hidden');
+  }
+
+  // الخريطة
+  if (data.location?.lat && data.location?.lng) {
+    document.getElementById('res-map-wrap').classList.remove('hidden');
+    setTimeout(() => initMap(data.location.lat, data.location.lng, cfg.color), 100);
+  }
+
+  // Timeline
+  renderTimeline(data.timeline || []);
+
+  showState('result');
+}
+
+// ─── Progress Bar ─────────────────────────────
+function updateProgress(activeStep, status) {
+  const steps    = [0,1,2,3,4];
+  const percents = [0, 25, 50, 75, 100];
+
+  // حالات خاصة
+  if (status === 'return' || status === 'cancelled') {
+    steps.forEach(i => {
+      document.getElementById('pd-'+i).className = 'prog-dot';
+      document.getElementById('pl-'+i).className = 'prog-lbl';
+    });
+    document.getElementById('prog-fill').style.width = '0%';
+    return;
+  }
+
+  steps.forEach(i => {
+    const dot = document.getElementById('pd-'+i);
+    const lbl = document.getElementById('pl-'+i);
+    if (i < activeStep) {
+      dot.className = 'prog-dot done';
+      lbl.className = 'prog-lbl';
+    } else if (i === activeStep) {
+      dot.className = 'prog-dot active';
+      lbl.className = 'prog-lbl active';
+    } else {
+      dot.className = 'prog-dot';
+      lbl.className = 'prog-lbl';
+    }
+  });
+
+  document.getElementById('prog-fill').style.width = percents[activeStep] + '%';
+}
+
+// ─── Timeline ─────────────────────────────────
+function renderTimeline(events) {
+  const container = document.getElementById('res-timeline');
+  if (!events.length) {
+    container.innerHTML = '<div style="text-align:center;opacity:0.5;padding:10px">لا توجد أحداث بعد</div>';
+    return;
+  }
+
+  const cfg_colors = {
+    created:'#94a3b8', pickup:'#6366f1', transit:'#1a56ff',
+    hub:'#f59e0b', delivery:'#f97316', delivered:'#10b981',
+    attempt:'#ef4444', return:'#ff3d6b', redirected:'#7c3aed',
+  };
+
+  container.innerHTML = [...events].reverse().map((ev, i) => {
+    const color = cfg_colors[ev.status] || '#94a3b8';
+    const label = TIMELINE_LABELS[ev.status] || ev.status;
+    const isLast = i === events.length - 1;
+    return `
+      <div class="tl-item">
+        <div class="tl-dot done" style="background:${color};border-color:${color};">
+          ${STATUS_CONFIG[ev.status]?.emoji || '●'}
+        </div>
+        <div class="tl-content">
+          <div class="tl-label">${label}</div>
+          ${ev.note ? `<div class="tl-note">${ev.note}</div>` : ''}
+          <div class="tl-time">${formatDate(ev.timestamp)}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ─── Map ──────────────────────────────────────
+function initMap(lat, lng, color = '#1a56ff') {
+  if (!_map) {
+    _map = L.map('parcel-map', { zoomControl: false, attributionControl: false })
+      .setView([lat, lng], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(_map);
+  } else {
+    _map.setView([lat, lng], 14);
+  }
+
+  const icon = L.divIcon({
+    html: `<div style="width:40px;height:40px;background:${color};border-radius:50%;
+      border:3px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.3);
+      display:flex;align-items:center;justify-content:center;font-size:18px;">📦</div>`,
+    className: '',
+    iconSize: [40,40],
+    iconAnchor: [20,20],
+  });
+
+  if (_marker) _marker.setLatLng([lat, lng]);
+  else _marker = L.marker([lat, lng], { icon }).addTo(_map);
+
+  // دائرة التقريب
+  L.circle([lat, lng], {
+    radius: 500, color: color,
+    fillColor: color, fillOpacity: 0.08, weight: 1,
+  }).addTo(_map);
+}
+
+// ─── Helpers ──────────────────────────────────
+function formatDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('ar-TN', {
+    day:'numeric', month:'short',
+    hour:'2-digit', minute:'2-digit'
+  });
+}
+
+// ─── URL Param — تتبع مباشر من الرابط ──────────
+// مثال: /track.html?id=WS-12345
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id') || params.get('parcel');
+  if (id) {
+    const input = document.getElementById('track-input');
+    input.value = id.toUpperCase();
+    trackParcel();
+  }
+});
+
+// Enter key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') trackParcel();
+});
+</script>
+</body>
+</html>

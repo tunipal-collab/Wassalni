@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>وصّلني — الليفرور</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#f0f7f4;--white:#fff;--border:#d1e8dc;
+  --accent:#00b87a;--accent2:#009962;
+  --blue:#1a56ff;--red:#ff3d6b;--yellow:#f59e0b;
+  --orange:#f97316;--purple:#7c3aed;
+  --text:#0a1f14;--text2:#4a7060;--text3:#8aab99;
+  --mono:'JetBrains Mono',monospace;--font:'Tajawal',sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto;overflow-x:hidden;}
+
+/* SCREENS */
+.screen{display:none;min-height:100vh;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* LOGIN */
+#s-login{background:linear-gradient(160deg,#0a1f14 0%,#0d4a2a 60%,#00b87a 100%);align-items:center;justify-content:center;padding:40px 28px;}
+.login-logo{width:72px;height:72px;background:rgba(255,255,255,0.12);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px;border:1px solid rgba(255,255,255,0.2);}
+.login-title{font-size:28px;font-weight:900;color:#fff;text-align:center;margin-bottom:4px;}
+.login-role{font-size:13px;color:rgba(255,255,255,0.5);text-align:center;margin-bottom:36px;background:rgba(255,255,255,0.1);padding:4px 16px;border-radius:20px;display:inline-block;width:fit-content;margin-left:auto;margin-right:auto;}
+.login-card{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:24px;width:100%;}
+.login-label{font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.login-input{width:100%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:14px 16px;font-family:var(--font);font-size:15px;color:#fff;outline:none;margin-bottom:14px;}
+.login-input::placeholder{color:rgba(255,255,255,0.3);}
+.login-input:focus{border-color:rgba(255,255,255,0.4);}
+.login-btn{width:100%;background:#fff;color:var(--accent);border:none;border-radius:12px;padding:16px;font-family:var(--font);font-size:16px;font-weight:800;cursor:pointer;margin-top:4px;}
+.login-btn:active{transform:scale(0.98);}
+
+/* TOPBAR */
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;box-shadow:0 1px 8px rgba(0,0,0,0.06);}
+.back-btn{width:36px;height:36px;border-radius:10px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0;}
+.topbar-title{font-size:17px;font-weight:800;flex:1;}
+.topbar-icon{font-size:22px;}
+
+/* HOME */
+#s-home{background:var(--bg);}
+.home-header{background:linear-gradient(135deg,#0a1f14,#00b87a);padding:28px 20px 32px;color:#fff;}
+.home-greeting{font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:4px;}
+.home-name{font-size:20px;font-weight:800;margin-bottom:16px;}
+.home-stats-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.hsr-box{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:12px 14px;}
+.hsr-lbl{font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:3px;}
+.hsr-val{font-family:var(--mono);font-size:20px;font-weight:700;color:#fff;}
+.home-grid{padding:20px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.home-btn{background:var(--white);border-radius:18px;padding:20px 16px;display:flex;flex-direction:column;align-items:flex-start;cursor:pointer;transition:all 0.15s;border:1.5px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.04);position:relative;overflow:hidden;}
+.home-btn:active{transform:scale(0.97);}
+.home-btn-icon{font-size:28px;margin-bottom:10px;}
+.home-btn-label{font-size:14px;font-weight:800;color:var(--text);}
+.home-btn-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.home-btn-accent{position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 18px 18px;}
+.home-btn:nth-child(1) .home-btn-accent{background:var(--accent);}
+.home-btn:nth-child(2) .home-btn-accent{background:var(--blue);}
+.home-btn:nth-child(3) .home-btn-accent{background:var(--yellow);}
+.home-btn:nth-child(4) .home-btn-accent{background:var(--purple);}
+
+/* PLAFOND BAR */
+.plafond-wrap{padding:0 16px 16px;}
+.plafond-card{background:var(--white);border-radius:14px;padding:14px 16px;border:1.5px solid var(--border);}
+.plafond-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.plafond-title{font-size:13px;font-weight:700;}
+.plafond-vals{font-family:var(--mono);font-size:12px;color:var(--text2);}
+.plafond-bar{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;}
+.plafond-fill{height:100%;border-radius:4px;transition:width 0.6s;}
+
+/* CONTENT */
+.content{flex:1;padding:16px;overflow-y:auto;}
+
+/* CARD */
+.card{background:var(--white);border-radius:16px;padding:18px;margin-bottom:12px;border:1px solid var(--border);box-shadow:0 1px 6px rgba(0,0,0,0.04);}
+.card-title{font-size:14px;font-weight:800;margin-bottom:14px;}
+
+/* FORM */
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+.field input,.field select{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:13px 14px;font-family:var(--font);font-size:14px;color:var(--text);outline:none;transition:border-color 0.2s;}
+.field input:focus,.field select:focus{border-color:var(--accent);}
+.field input::placeholder{color:var(--text3);}
+
+/* BTNS */
+.btn-primary{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:16px;font-family:var(--font);font-size:16px;font-weight:800;cursor:pointer;margin-top:4px;}
+.btn-primary:active{transform:scale(0.98);background:var(--accent2);}
+.btn-secondary{width:100%;background:var(--bg);color:var(--text);border:1.5px solid var(--border);border-radius:14px;padding:14px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;}
+.btn-danger{width:100%;background:#fff1f3;color:var(--red);border:1.5px solid #fecdd3;border-radius:14px;padding:14px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;}
+
+/* PARCEL ITEM */
+.parcel-item{background:var(--white);border-radius:14px;padding:14px 16px;margin-bottom:10px;border:1.5px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.15s;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.parcel-item:active{transform:scale(0.99);}
+.parcel-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.parcel-info{flex:1;min-width:0;}
+.parcel-id{font-family:var(--mono);font-size:11px;color:var(--text2);margin-bottom:2px;}
+.parcel-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.parcel-dest{font-size:12px;color:var(--text2);margin-top:1px;}
+.parcel-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.parcel-cod{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent);}
+.parcel-tag{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
+
+/* TABS */
+.seg-tabs{display:flex;background:var(--bg);border-radius:12px;padding:3px;gap:2px;margin-bottom:14px;border:1px solid var(--border);}
+.seg-tab{flex:1;padding:9px 4px;border-radius:10px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;color:var(--text2);transition:all 0.15s;}
+.seg-tab.active{background:var(--white);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+
+/* MAP */
+#s-map{background:#0a1f14;}
+.map-topbar{background:rgba(10,31,20,0.97);padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.map-topbar .back-btn{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.1);color:#fff;}
+.map-topbar .topbar-title{color:#fff;}
+.map-area{flex:1;position:relative;overflow:hidden;background:radial-gradient(ellipse at 40% 40%,#0d3a1f 0%,#0a1f14 70%);min-height:350px;}
+.map-grid-lines{position:absolute;inset:0;background-image:linear-gradient(rgba(0,184,122,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,184,122,0.05) 1px,transparent 1px);background-size:40px 40px;}
+.map-pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;transition:transform 0.2s;}
+.map-pin:active{transform:translate(-50%,-100%) scale(1.2);}
+.pin-circle{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;box-shadow:0 3px 10px rgba(0,0,0,0.3);}
+.pin-tail{width:2px;height:8px;margin:0 auto;border-radius:0 0 2px 2px;}
+.pin-green .pin-circle{background:var(--accent);}
+.pin-green .pin-tail{background:var(--accent);}
+.pin-blue .pin-circle{background:var(--blue);}
+.pin-blue .pin-tail{background:var(--blue);}
+.pin-yellow .pin-circle{background:var(--yellow);}
+.pin-yellow .pin-tail{background:var(--yellow);}
+.map-legend-bar{background:rgba(10,31,20,0.95);padding:10px 20px;display:flex;gap:14px;border-top:1px solid rgba(255,255,255,0.06);}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.6);}
+.leg-dot{width:10px;height:10px;border-radius:50%;}
+
+/* MAP PIN POPUP */
+.pin-popup{position:absolute;background:rgba(10,31,20,0.97);border:1px solid rgba(0,184,122,0.3);border-radius:14px;padding:14px 16px;min-width:200px;transform:translate(-50%,-100%);margin-top:-60px;z-index:10;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+.pin-popup.show{display:block;}
+.pp-id{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:4px;}
+.pp-name{font-size:14px;font-weight:700;color:#fff;margin-bottom:6px;}
+.pp-addr{font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:10px;}
+.pp-call{display:flex;align-items:center;gap:8px;background:rgba(0,184,122,0.15);border:1px solid rgba(0,184,122,0.3);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;color:var(--accent);cursor:pointer;}
+
+/* CUSTODY */
+.custody-section{margin-bottom:16px;}
+.custody-title{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;}
+
+/* QR SCAN */
+.qr-box{background:var(--bg);border:2px dashed var(--border);border-radius:16px;padding:28px;text-align:center;margin-bottom:14px;cursor:pointer;transition:all 0.2s;}
+.qr-box:active{border-color:var(--accent);background:#f0fff8;}
+.qr-icon{font-size:48px;margin-bottom:10px;}
+.qr-hint{font-size:13px;color:var(--text2);margin-top:6px;}
+
+/* SIGNATURE */
+.sig-area{background:var(--bg);border:2px dashed var(--border);border-radius:14px;height:100px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:14px;transition:all 0.2s;position:relative;overflow:hidden;}
+.sig-area.signed{border-color:var(--accent);background:#f0fff8;border-style:solid;}
+.sig-text{font-size:13px;color:var(--text3);}
+.sig-result{font-size:22px;color:var(--accent);font-style:italic;font-weight:700;}
+
+/* BLOCKER */
+.blocker{position:fixed;inset:0;background:rgba(0,0,0,0.9);backdrop-filter:blur(8px);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;}
+.blocker.open{display:flex;}
+.blocker-icon{font-size:64px;margin-bottom:16px;animation:shake 0.5s ease;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.blocker-title{font-size:22px;font-weight:900;color:var(--red);margin-bottom:8px;}
+.blocker-sub{font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:24px;max-width:300px;line-height:1.5;}
+.pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:360px;margin-bottom:20px;}
+.pay-opt{background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px;cursor:pointer;transition:all 0.15s;text-align:center;}
+.pay-opt:active,.pay-opt.sel{border-color:var(--accent);background:rgba(0,184,122,0.1);}
+.pay-opt-icon{font-size:26px;margin-bottom:6px;}
+.pay-opt-lbl{font-size:12px;font-weight:700;color:rgba(255,255,255,0.7);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:100;display:none;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-sheet{background:var(--white);border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:430px;animation:slideUp 0.25s ease;max-height:90vh;overflow-y:auto;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:6px;}
+.modal-sub{font-size:13px;color:var(--text2);margin-bottom:18px;}
+
+/* FINANCE */
+.fin-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--border);}
+.fin-row:last-child{border-bottom:none;}
+.fin-lbl{font-size:14px;color:var(--text2);}
+.fin-val{font-family:var(--mono);font-size:16px;font-weight:700;}
+.fin-total .fin-lbl{font-weight:800;color:var(--text);font-size:15px;}
+.fin-total .fin-val{font-size:22px;color:var(--accent);}
+.wm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;}
+.wm-btn{background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;}
+.wm-btn.selected{border-color:var(--accent);background:#f0fff8;}
+.wm-icon{font-size:22px;margin-bottom:4px;}
+.wm-lbl{font-size:11px;font-weight:700;color:var(--text2);}
+
+/* TOAST */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#0a1f14;color:#fff;padding:12px 24px;border-radius:100px;font-size:14px;font-weight:600;z-index:300;opacity:0;transition:opacity 0.2s;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;}
+
+/* SUCCESS */
+.success-screen{position:fixed;inset:0;background:var(--accent);z-index:250;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;}
+.success-screen.show{display:flex;animation:fadeIn 0.3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+.success-icon{font-size:80px;margin-bottom:16px;}
+.success-title{font-size:24px;font-weight:900;color:#fff;margin-bottom:8px;}
+.success-sub{font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:24px;}
+.success-btn{background:#fff;color:var(--accent);border:none;border-radius:14px;padding:14px 36px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;}
+</style>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="/wassalni-api.js"></script>
+<script src="/wassalni-qr.js"></script>
+<script src="/wassalni-map.js"></script>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div class="screen active" id="s-login">
+  <div class="login-logo">🛵</div>
+  <div class="login-title">وصّلني</div>
+  <div class="login-role">ليفرور</div>
+  <div class="login-card">
+    <div class="login-label">رقم الهاتف</div>
+    <input class="login-input" type="tel" placeholder="55 123 456" id="login-user" inputmode="numeric">
+    <div class="login-label">كلمة السر</div>
+    <input class="login-input" type="password" placeholder="••••••••" id="login-pass">
+    <button class="login-btn" onclick="doLogin()">دخول ←</button>
+  </div>
+</div>
+
+<!-- ══ HOME ══ -->
+<div class="screen" id="s-home">
+  <div class="home-header">
+    <div class="home-greeting">مرحباً،</div>
+    <div class="home-name">بلال شكير 🛵 · تونس الكبرى</div>
+    <div class="home-stats-row">
+      <div class="hsr-box"><div class="hsr-lbl">كوليات في العهدة</div><div class="hsr-val">8</div></div>
+      <div class="hsr-box"><div class="hsr-lbl">أرباح اليوم</div><div class="hsr-val">41 DT</div></div>
+    </div>
+  </div>
+
+  <!-- PLAFOND BAR -->
+  <div class="plafond-wrap" style="padding-top:14px;">
+    <div class="plafond-card">
+      <div class="plafond-top">
+        <div class="plafond-title">🔴 الرصيد في العهدة</div>
+        <div class="plafond-vals"><span style="color:var(--accent);font-weight:700">340 DT</span> / 500 DT</div>
+      </div>
+      <div class="plafond-bar">
+        <div class="plafond-fill" id="plafond-fill" style="width:68%;background:linear-gradient(90deg,var(--accent),var(--yellow))"></div>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-top:5px;display:flex;justify-content:space-between"><span>0</span><span style="color:var(--yellow)">⚠️ تحذير عند 80%</span><span>500 DT</span></div>
+    </div>
+  </div>
+
+  <div class="home-grid">
+    <div class="home-btn" onclick="goScreen('s-balance')">
+      <div class="home-btn-icon">💰</div>
+      <div class="home-btn-label">الرصيد</div>
+      <div class="home-btn-sub">340 DT في العهدة</div>
+      <div class="home-btn-accent"></div>
+    </div>
+    <div class="home-btn" onclick="goScreen('s-parcels')">
+      <div class="home-btn-icon">📦</div>
+      <div class="home-btn-label">كوليات العهدة</div>
+      <div class="home-btn-sub">8 كوليات</div>
+      <div class="home-btn-accent"></div>
+    </div>
+    <div class="home-btn" onclick="goScreen('s-map')">
+      <div class="home-btn-icon">🗺️</div>
+      <div class="home-btn-label">الخريطة</div>
+      <div class="home-btn-sub">عناوين الزبائن</div>
+      <div class="home-btn-accent"></div>
+    </div>
+    <div class="home-btn" onclick="goScreen('s-custody')">
+      <div class="home-btn-icon">🔗</div>
+      <div class="home-btn-label">نقل العهدة</div>
+      <div class="home-btn-sub">سكان QR</div>
+      <div class="home-btn-accent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: الرصيد ══ -->
+<div class="screen" id="s-balance">
+  <div class="topbar">
+    <div class="back-btn" onclick="goHome()">←</div>
+    <div class="topbar-title">الرصيد والعمولات</div>
+    <div class="topbar-icon">💰</div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="card-title">ملخص الرصيد</div>
+      <div class="fin-row"><div class="fin-lbl">عمولة نقل الكوليات</div><div class="fin-val" style="color:var(--accent)">+180 DT</div></div>
+      <div class="fin-row"><div class="fin-lbl">COD كوليات مسلَّمة</div><div class="fin-val" style="color:var(--accent)">+340 DT</div></div>
+      <div class="fin-row fin-total"><div class="fin-lbl">الرصيد الكلي</div><div class="fin-val">520 DT</div></div>
+    </div>
+
+    <!-- PLAFOND WARNING -->
+    <div id="plafond-warning" style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:14px;padding:14px 16px;margin-bottom:12px;display:none">
+      <div style="font-size:14px;font-weight:800;color:var(--orange);margin-bottom:4px">⚠️ اقتربت من السقف!</div>
+      <div style="font-size:12px;color:var(--orange)">رصيدك وصل 80% من السقف (500 DT). فرّغ رصيدك قريباً.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">تفريغ الرصيد</div>
+      <div class="field"><label>المبلغ المراد تسليمه (DT)</label><input type="number" placeholder="0.000" style="direction:ltr" id="balance-amount"></div>
+      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px">طريقة التفريغ</div>
+      <div class="wm-grid">
+        <div class="wm-btn selected" onclick="selWM(this)"><div class="wm-icon">🏭</div><div class="wm-lbl">هوب قريبة</div></div>
+        <div class="wm-btn" onclick="selWM(this)"><div class="wm-icon">📱</div><div class="wm-lbl">D17</div></div>
+        <div class="wm-btn" onclick="selWM(this)"><div class="wm-icon">📮</div><div class="wm-lbl">بريد تونس</div></div>
+        <div class="wm-btn" onclick="selWM(this)"><div class="wm-icon">🏦</div><div class="wm-lbl">تحويل بنكي</div></div>
+      </div>
+      <button class="btn-primary" onclick="doTransfer()">✅ تفريغ الرصيد</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">سجل العمولات اليوم</div>
+      <div class="fin-row"><div class="fin-lbl">سارة المحمودي — نابل</div><div class="fin-val" style="color:var(--accent)">+1.5 DT</div></div>
+      <div class="fin-row"><div class="fin-lbl">جلب من تاجر الأهرام</div><div class="fin-val" style="color:var(--accent)">+1.0 DT</div></div>
+      <div class="fin-row"><div class="fin-lbl">أحمد بن عمر — تونس</div><div class="fin-val" style="color:var(--accent)">+1.5 DT</div></div>
+      <div class="fin-row" style="border:none"><div class="fin-lbl">جلب من متجر الياسمين</div><div class="fin-val" style="color:var(--accent)">+1.0 DT</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: كوليات العهدة ══ -->
+<div class="screen" id="s-parcels">
+  <div class="topbar">
+    <div class="back-btn" onclick="goHome()">←</div>
+    <div class="topbar-title">كوليات في العهدة</div>
+    <div class="topbar-icon">📦</div>
+  </div>
+  <div class="content">
+    <div class="seg-tabs">
+      <div class="seg-tab active" onclick="segTab(this,'seg-clients')">🏠 للزبائن (5)</div>
+      <div class="seg-tab" onclick="segTab(this,'seg-merchants')">🏪 من التجار (3)</div>
+    </div>
+
+    <!-- للزبائن -->
+    <div id="seg-clients">
+      <div class="parcel-item" onclick="openCustody('client','#WS-00847','محمد علي بن صالح','+216 55 234 567','شارع الحبيب بورقيبة، تونس','85')">
+        <div class="parcel-dot" style="background:var(--accent);box-shadow:0 0 0 3px rgba(0,184,122,0.2)"></div>
+        <div class="parcel-info"><div class="parcel-id">#WS-00847</div><div class="parcel-name">محمد علي بن صالح</div><div class="parcel-dest">📍 شارع بورقيبة، تونس</div></div>
+        <div class="parcel-right"><div class="parcel-cod">85 DT</div><div class="parcel-tag" style="background:#f0fff8;color:var(--accent)">للتسليم</div></div>
+      </div>
+      <div class="parcel-item" onclick="openCustody('client','#WS-00843','عمر الشابي','+216 92 333 444','حي المنزه، تونس','150')">
+        <div class="parcel-dot" style="background:var(--orange);box-shadow:0 0 0 3px rgba(249,115,22,0.2)"></div>
+        <div class="parcel-info"><div class="parcel-id">#WS-00843</div><div class="parcel-name">عمر الشابي</div><div class="parcel-dest">📍 حي المنزه، تونس</div></div>
+        <div class="parcel-right"><div class="parcel-cod">150 DT</div><div class="parcel-tag" style="background:#fff7ed;color:var(--orange)">محاولة 2</div></div>
+      </div>
+      <div class="parcel-item" onclick="openCustody('client','#WS-00841','أمال بوعزيز','+216 71 555 888','شارع لبنان، تونس','60')">
+        <div class="parcel-dot" style="background:var(--accent)"></div>
+        <div class="parcel-info"><div class="parcel-id">#WS-00841</div><div class="parcel-name">أمال بوعزيز</div><div class="parcel-dest">📍 شارع لبنان، تونس</div></div>
+        <div class="parcel-right"><div class="parcel-cod">60 DT</div><div class="parcel-tag" style="background:#f0fff8;color:var(--accent)">للتسليم</div></div>
+      </div>
+      <div class="parcel-item" onclick="openCustody('client','#WS-00838','ياسين الرحالي','+216 98 111 222','حي النصر، تونس','200')">
+        <div class="parcel-dot" style="background:var(--accent)"></div>
+        <div class="parcel-info"><div class="parcel-id">#WS-00838</div><div class="parcel-name">ياسين الرحالي</div><div class="parcel-dest">📍 حي النصر، تونس</div></div>
+        <div class="parcel-right"><div class="parcel-cod">200 DT</div><div class="parcel-tag" style="background:#f0fff8;color:var(--accent)">للتسليم</div></div>
+      </div>
+      <div class="parcel-item" onclick="openCustody('client','#WS-00835','سمير العلوي','+216 23 444 555','باب سويقة، تونس','45')">
+        <div class="parcel-dot" style="background:var(--accent)"></div>
+        <div class="parcel-info"><div class="parcel-id">#WS-00835</div><div class="parcel-name">سمير العلوي</div><div class="parcel-dest">📍 باب سويقة، تونس</div></div>
+        <div class="parcel-right"><div class="parcel-cod">45 DT</div><div class="parcel-tag" style="background:#f0fff8;color:var(--accent)">للتسليم</div></div>
+      </div>
+    </div>
+
+    <!-- من التجار للهوب -->
+    <div id="seg-merchants" style="display:none">
+      <div class="parcel-item" onclick="openCustody('hub','#WS-00850','شركة الأهرام','+216 71 000 111','شارع الحرية، تونس','—')">
+        <div class="parcel-dot" style="background:var(--blue)"></div>
+        <div class="parcel-info"><div class="parcel-id">#WS-00850</div><div class="parcel-name">شركة الأهرام</div><div class="parcel-dest">📍 الجلاز → هوب تونس 4</div></div>
+        <div class="parcel-right"><div class="parcel-cod" style="color:var(--blue)">جلب</div><div class="parcel-tag" style="background:#eff4ff;color:var(--blue)">للهوب</div></div>
+      </div>
+      <div class="parcel-item" onclick="openCustody('hub','#WS-00849','متجر الياسمين','+216 98 222 333','حي التضامن، تونس','—')">
+        <div class="parcel-dot" style="background:var(--blue)"></div>
+        <div class="parcel-info"><div class="parcel-id">#WS-00849</div><div class="parcel-name">متجر الياسمين</div><div class="parcel-dest">📍 التضامن → هوب تونس 2</div></div>
+        <div class="parcel-right"><div class="parcel-cod" style="color:var(--blue)">جلب</div><div class="parcel-tag" style="background:#eff4ff;color:var(--blue)">للهوب</div></div>
+      </div>
+      <div class="parcel-item" onclick="openCustody('hub','#WS-00848','بوتيك سمر','+216 55 777 888','شارع الهادي نويرة، تونس','—')">
+        <div class="parcel-dot" style="background:var(--blue)"></div>
+        <div class="parcel-info"><div class="parcel-id">#WS-00848</div><div class="parcel-name">بوتيك سمر</div><div class="parcel-dest">📍 باب البحر → هوب تونس 1</div></div>
+        <div class="parcel-right"><div class="parcel-cod" style="color:var(--blue)">جلب</div><div class="parcel-tag" style="background:#eff4ff;color:var(--blue)">للهوب</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: الخريطة ══ -->
+<div class="screen" id="s-map">
+  <div class="map-topbar">
+    <div class="back-btn" onclick="goHome()">←</div>
+    <div class="topbar-title">خريطة العناوين</div>
+  </div>
+  <div class="map-area" onclick="closePopup()">
+    <div class="map-grid-lines"></div>
+
+    <!-- زبائن — أخضر -->
+    <div class="map-pin pin-green" style="top:32%;left:48%" onclick="showPopup(event,'زبون','#WS-00847','محمد علي بن صالح','شارع الحبيب بورقيبة، تونس','+216 55 234 567')">
+      <div class="pin-circle">ز</div><div class="pin-tail"></div>
+    </div>
+    <div class="map-pin pin-green" style="top:44%;left:55%" onclick="showPopup(event,'زبون','#WS-00843','عمر الشابي','حي المنزه، تونس','+216 92 333 444')">
+      <div class="pin-circle">ز</div><div class="pin-tail"></div>
+    </div>
+    <div class="map-pin pin-green" style="top:38%;left:40%" onclick="showPopup(event,'زبون','#WS-00841','أمال بوعزيز','شارع لبنان، تونس','+216 71 555 888')">
+      <div class="pin-circle">ز</div><div class="pin-tail"></div>
+    </div>
+    <div class="map-pin pin-green" style="top:52%;left:44%" onclick="showPopup(event,'زبون','#WS-00838','ياسين الرحالي','حي النصر، تونس','+216 98 111 222')">
+      <div class="pin-circle">ز</div><div class="pin-tail"></div>
+    </div>
+    <div class="map-pin pin-green" style="top:60%;left:50%" onclick="showPopup(event,'زبون','#WS-00835','سمير العلوي','باب سويقة، تونس','+216 23 444 555')">
+      <div class="pin-circle">ز</div><div class="pin-tail"></div>
+    </div>
+
+    <!-- تجار — أزرق -->
+    <div class="map-pin pin-blue" style="top:28%;left:35%" onclick="showPopup(event,'تاجر','—','شركة الأهرام','شارع الحرية، الجلاز','+216 71 000 111')">
+      <div class="pin-circle">ت</div><div class="pin-tail"></div>
+    </div>
+    <div class="map-pin pin-blue" style="top:65%;left:60%" onclick="showPopup(event,'تاجر','—','متجر الياسمين','حي التضامن، تونس','+216 98 222 333')">
+      <div class="pin-circle">ت</div><div class="pin-tail"></div>
+    </div>
+
+    <!-- هوبات — أصفر -->
+    <div class="map-pin pin-yellow" style="top:22%;left:52%" onclick="showPopup(event,'هوب','—','هوب تونس 1','شارع الجمهورية، تونس','+216 71 100 200')">
+      <div class="pin-circle">ه</div><div class="pin-tail"></div>
+    </div>
+    <div class="map-pin pin-yellow" style="top:48%;left:63%" onclick="showPopup(event,'هوب','—','هوب تونس 4','حي الخضراء، تونس','+216 71 400 500')">
+      <div class="pin-circle">ه</div><div class="pin-tail"></div>
+    </div>
+
+    <!-- POPUP -->
+    <div class="pin-popup" id="pin-popup">
+      <div class="pp-id" id="pp-id"></div>
+      <div class="pp-name" id="pp-name"></div>
+      <div class="pp-addr" id="pp-addr"></div>
+      <div class="pp-call" onclick="callNumber()">
+        <span>📞</span>
+        <span id="pp-phone"></span>
+        <span style="margin-right:auto;font-size:11px;color:rgba(255,255,255,0.5)">اتصال مباشر</span>
+      </div>
+    </div>
+  </div>
+  <div class="map-legend-bar">
+    <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div>زبون</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--blue)"></div>تاجر</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--yellow)"></div>هوب</div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: نقل العهدة ══ -->
+<div class="screen" id="s-custody">
+  <div class="topbar">
+    <div class="back-btn" onclick="goHome()">←</div>
+    <div class="topbar-title">نقل العهدة</div>
+    <div class="topbar-icon">🔗</div>
+  </div>
+  <div class="content">
+    <div class="seg-tabs">
+      <div class="seg-tab active" onclick="segTab(this,'cus-client')">👤 تسليم للزبون</div>
+      <div class="seg-tab" onclick="segTab(this,'cus-hub')">🏭 تسليم للهوب</div>
+    </div>
+
+    <!-- تسليم للزبون -->
+    <div id="cus-client">
+      <div class="card">
+        <div class="card-title">سكان QR الزبون</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">الزبون يفتح التطبيق ويعرض QR الطرد — امسحه لتأكيد التسليم وقبض المبلغ</div>
+        <div id="qr-client-scanner"></div>
+        <div id="client-scan-result" style="display:none">
+          <div style="background:#f0fff8;border:1.5px solid var(--accent);border-radius:12px;padding:14px;margin-bottom:14px">
+            <div style="font-family:var(--mono);font-size:13px;color:var(--text2);margin-bottom:4px" id="csr-id">#WS-00847</div>
+            <div style="font-size:15px;font-weight:800;margin-bottom:4px" id="csr-name">محمد علي بن صالح</div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div style="font-size:12px;color:var(--text2)" id="csr-addr">شارع بورقيبة، تونس</div>
+              <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent)" id="csr-cod">85 DT</div>
+            </div>
+          </div>
+          <div class="card-title">توقيع الزبون الإلكتروني</div>
+          <div class="sig-area" id="sig-box">
+            <div class="sig-text" id="sig-hint" style="display:none"></div>
+            <canvas id="sig-canvas" width="280" height="80" style="touch-action:none;cursor:crosshair;display:block;margin:0 auto;border-radius:8px;background:#f8faff;"></canvas>
+          </div>
+          <button class="btn-primary" id="confirm-delivery-btn" onclick="confirmDelivery()" disabled style="opacity:0.5">✅ تأكيد التسليم وقبض المبلغ</button>
+          <button class="btn-danger" onclick="markFailed()">📵 لا يجيب / رفض الاستلام</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- تسليم للهوب -->
+    <div id="cus-hub" style="display:none">
+      <div class="card">
+        <div class="card-title">تسليم للهوب</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">الهوب يسكن QR الطرد — يخرج من عهدتك أوتوماتيكياً</div>
+        <div id="qr-hub-scanner"></div>
+        <div id="hub-scan-result" style="display:none">
+          <div style="background:#eff4ff;border:1.5px solid var(--blue);border-radius:12px;padding:14px;margin-bottom:14px">
+            <div style="font-family:var(--mono);font-size:13px;color:var(--text2);margin-bottom:4px">#WS-00850</div>
+            <div style="font-size:15px;font-weight:800;margin-bottom:4px">شركة الأهرام — للهوب</div>
+            <div style="font-size:12px;color:var(--text2)">📍 هوب تونس 4</div>
+          </div>
+          <div style="background:#f0fff8;border:1px solid var(--accent);border-radius:10px;padding:12px;font-size:13px;color:var(--accent);font-weight:600;margin-bottom:12px">
+            ✅ الهوب مسح الكود — سيخرج من عهدتك بعد التأكيد
+          </div>
+          <button class="btn-primary" onclick="confirmHubTransfer()">✅ تأكيد الخروج من العهدة</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: تفاصيل الكولي ══ -->
+<div class="modal-overlay" id="modal-parcel">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="mp-title">محمد علي بن صالح</div>
+    <div class="modal-sub" id="mp-sub">#WS-00847 · للتسليم</div>
+    <div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:4px">العنوان</div>
+      <div style="font-size:14px;font-weight:600" id="mp-addr">شارع بورقيبة، تونس</div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:14px">
+      <div style="flex:1;background:var(--bg);border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:4px">المبلغ</div>
+        <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--accent)" id="mp-cod">85 DT</div>
+      </div>
+      <div style="flex:1;background:var(--bg);border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:4px">النوع</div>
+        <div style="font-size:14px;font-weight:700" id="mp-type">للتسليم</div>
+      </div>
+    </div>
+    <a id="mp-call-btn" href="tel:" style="display:flex;align-items:center;justify-content:center;gap:10px;background:var(--accent);color:#fff;border-radius:14px;padding:15px;font-size:15px;font-weight:800;text-decoration:none;margin-bottom:10px">
+      📞 <span id="mp-phone">+216 55 234 567</span>
+    </a>
+    <button class="btn-secondary" onclick="closeModal();goScreen('s-custody')">🔗 نقل العهدة</button>
+    <button class="btn-secondary" style="margin-top:8px" onclick="closeModal()">إغلاق</button>
+  </div>
+</div>
+
+<!-- ══ BLOCKER: سقف الرصيد ══ -->
+<div class="blocker" id="blocker">
+  <div class="blocker-icon">🔴</div>
+  <div class="blocker-title">وصلت السقف!</div>
+  <div class="blocker-sub">رصيدك تجاوز 500 DT — يجب تفريغ الرصيد قبل مواصلة العمل</div>
+  <div class="pay-grid">
+    <div class="pay-opt" onclick="selPay(this)"><div class="pay-opt-icon">🏭</div><div class="pay-opt-lbl">هوب قريبة</div></div>
+    <div class="pay-opt" onclick="selPay(this)"><div class="pay-opt-icon">📱</div><div class="pay-opt-lbl">D17</div></div>
+    <div class="pay-opt" onclick="selPay(this)"><div class="pay-opt-icon">📮</div><div class="pay-opt-lbl">بريد تونس</div></div>
+    <div class="pay-opt" onclick="selPay(this)"><div class="pay-opt-icon">🏦</div><div class="pay-opt-lbl">تحويل بنكي</div></div>
+  </div>
+  <button style="background:var(--accent);color:#fff;border:none;border-radius:14px;padding:14px 36px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer" onclick="closeBlocker()">✅ تأكيد التفريغ</button>
+</div>
+
+<!-- ══ SUCCESS ══ -->
+<div class="success-screen" id="success-screen">
+  <div class="success-icon">🎉</div>
+  <div class="success-title" id="success-title">تم التسليم!</div>
+  <div class="success-sub" id="success-sub">+1.5 DT أضيفت لعمولتك</div>
+  <button class="success-btn" onclick="closeSuccess()">متابعة</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// NAV
+function goScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function goHome(){goScreen('s-home');}
+
+// LOGIN
+// ─── LOGIN ────────────────────────────────────
+async function doLogin(){
+  const u=document.getElementById('login-user').value.trim();
+  const p=document.getElementById('login-pass').value;
+  if(!u||!p){showToast('⚠️ أدخل بيانات الدخول');return;}
+  WsUI.showLoading(true);
+  const r=await WsAuth.login(u,p);
+  WsUI.showLoading(false);
+  if(r.status==='ok'){
+    if(r.user.role!=='livreur'){window.location.href=r.redirect;return;}
+    goScreen('s-home');
+    loadBalance();
+    loadParcels();
+  } else if(r.status==='pending'){
+    showToast('⏳ حسابك قيد المراجعة');
+  } else {
+    showToast('❌ '+(r.message||'بيانات الدخول خاطئة'));
+  }
+}
+
+// ─── LOAD BALANCE ─────────────────────────────
+async function loadBalance(){
+  const r=await WsFinance.getBalance();
+  if(r.balance!==undefined){
+    const el=document.querySelector('.balance-amount');
+    if(el) el.textContent=WsUI.formatDT(r.balance);
+    // تحقق من البلافون
+    if(r.cashCeilingReached) showBlocker();
+  }
+}
+
+// ─── LOAD PARCELS ─────────────────────────────
+async function loadParcels(){
+  const r=await WsParcels.list();
+  const clientList=document.getElementById('seg-clients');
+  if(!clientList) return;
+  if(!r.success||!r.parcels?.length) return;
+  const clientParcels=r.parcels.filter(p=>['delivery','attempt'].includes(p.status));
+  const hubParcels=r.parcels.filter(p=>['pickup'].includes(p.status));
+  // تحديث العداد
+  const clientTab=document.querySelector('[onclick*="seg-clients"]');
+  if(clientTab) clientTab.textContent=`🏠 للزبائن (${clientParcels.length})`;
+  const hubTab=document.querySelector('[onclick*="seg-merchants"]');
+  if(hubTab) hubTab.textContent=`🏪 من التجار (${hubParcels.length})`;
+}
+
+// TABS
+function segTab(el,id){
+  // تشغيل الماسح المناسب
+  if(id==='cus-client' && !_clientScanner) setTimeout(initClientScanner, 300);
+  if(id==='cus-hub'    && !_hubScanner)    setTimeout(initHubScanner,    300);
+  const tabs=el.closest('.seg-tabs'); tabs.querySelectorAll('.seg-tab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
+  const all=['seg-clients','seg-merchants','cus-client','cus-hub'];
+  all.forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});
+  document.getElementById(id).style.display='block';
+}
+
+// MAP POPUP
+let currentPhone='';
+function showPopup(e,type,id,name,addr,phone){
+  e.stopPropagation();
+  closePopup();
+  currentPhone=phone;
+  const popup=document.getElementById('pin-popup');
+  const pin=e.currentTarget;
+  const pRect=pin.getBoundingClientRect();
+  const mapRect=pin.closest('.map-area').getBoundingClientRect();
+  popup.style.top=(pRect.top-mapRect.top-10)+'px';
+  popup.style.left=(pRect.left-mapRect.left)+'px';
+  document.getElementById('pp-id').textContent=type==='زبون'?id:'';
+  document.getElementById('pp-name').textContent=name;
+  document.getElementById('pp-addr').textContent=addr;
+  document.getElementById('pp-phone').textContent=phone;
+  popup.classList.add('show');
+}
+function closePopup(){document.getElementById('pin-popup').classList.remove('show');}
+function callNumber(){window.location.href='tel:'+currentPhone;}
+
+// OPEN CUSTODY FROM PARCEL LIST
+let _activeParcedId=null;
+function openCustody(type,id,name,phone,addr,cod){
+  _activeParcedId=id.replace('#','');
+  document.getElementById('mp-title').textContent=name;
+  document.getElementById('mp-sub').textContent=id+' · '+(type==='client'?'للتسليم':'للهوب');
+  document.getElementById('mp-addr').textContent=addr;
+  document.getElementById('mp-cod').textContent=cod+' DT';
+  document.getElementById('mp-type').textContent=type==='client'?'للزبون':'للهوب';
+  document.getElementById('mp-phone').textContent=phone;
+  document.getElementById('mp-call-btn').href='tel:'+phone;
+  document.getElementById('modal-parcel').classList.add('open');
+}
+
+// QR SCAN
+let signed=false, _scannedParcelId=null;
+function simulateScan(type){
+  _scannedParcelId=_activeParcedId||'WS-00847';
+  if(type==='client'){
+    document.getElementById('client-scan-result').style.display='block';
+    signed=false;
+    document.getElementById('sig-box').classList.remove('signed');
+    document.getElementById('sig-hint').style.display='block';
+    document.getElementById('sig-result').style.display='none';
+    document.getElementById('confirm-delivery-btn').disabled=true;
+    document.getElementById('confirm-delivery-btn').style.opacity='0.5';
+    showToast('✅ QR مُمسوح — طرد #'+_scannedParcelId);
+  } else {
+    document.getElementById('hub-scan-result').style.display='block';
+    showToast('✅ الهوب مسح الكود');
+  }
+}
+
+// SIGNATURE
+// ─── QR Scanners Init ────────────────────────
+let _clientScanner = null;
+let _hubScanner    = null;
+let _currentParcelId = null;
+
+function initClientScanner() {
+  if (_clientScanner) return;
+  _clientScanner = new WsQRScanner({
+    containerId: 'qr-client-scanner',
+    onScan: async (parcelId) => {
+      _currentParcelId = parcelId;
+      WsUI.showLoading(true);
+      const parcel = await WsCustody.getParcelData(parcelId);
+      WsUI.showLoading(false);
+      if (!parcel) { showToast('❌ الطرد غير موجود','error'); return; }
+      // إظهار بيانات الزبون فقط لليفرور النهائي
+      document.getElementById('csr-id').textContent   = parcel.id;
+      document.getElementById('csr-name').textContent = parcel.recipientName  || '—';
+      document.getElementById('csr-addr').textContent = parcel.recipientAddress || parcel.recipientCity || '—';
+      document.getElementById('csr-cod').textContent  = (parcel.codAmount||0)+' DT';
+      currentPhone = parcel.recipientPhone || '';
+      // إظهار هاتف التاجر
+      const mPhone = document.getElementById('csr-merchant-phone');
+      if(mPhone) mPhone.textContent = parcel.merchantPhone ? '📞 التاجر: '+parcel.merchantPhone : '';
+      document.getElementById('client-scan-result').style.display='block';
+      // تفعيل زر التوقيع
+      WsSignature.init('sig-canvas');
+    },
+    onError: () => showToast('❌ الكاميرا غير متاحة','error'),
+  });
+  _clientScanner.start();
+}
+
+function initHubScanner() {
+  if (_hubScanner) return;
+  _hubScanner = new WsQRScanner({
+    containerId: 'qr-hub-scanner',
+    onScan: async (parcelId) => {
+      _currentParcelId = parcelId;
+      WsUI.showLoading(true);
+      const r = await WsCustody.transfer(parcelId, 'hub_in');
+      WsUI.showLoading(false);
+      if (r.success) {
+        document.querySelector('#hub-scan-result .hsr-id').textContent = parcelId;
+        document.getElementById('hub-scan-result').style.display='block';
+        showToast('✅ الطرد انتقل للهوب — خرج من عهدتك','success');
+        loadParcels();
+      } else {
+        showToast('❌ '+(r.message||'خطأ'),'error');
+      }
+    },
+  });
+  _hubScanner.start();
+}
+
+// legacy compatibility
+function simulateScan(type) {
+  if (type === 'client') initClientScanner();
+  else initHubScanner();
+}
+function doSign(){
+  signed=true;
+  document.getElementById('sig-box').classList.add('signed');
+  document.getElementById('sig-hint').style.display='none';
+  document.getElementById('sig-result').style.display='block';
+  document.getElementById('confirm-delivery-btn').disabled=false;
+  document.getElementById('confirm-delivery-btn').style.opacity='1';
+  showToast('✍️ تم التوقيع');
+}
+
+// ─── CONFIRM DELIVERY (حقيقي) ─────────────────
+async function confirmDelivery(){
+  if(!signed){showToast('⚠️ يجب توقيع الزبون أولاً');return;}
+  if(!_scannedParcelId){showToast('⚠️ امسح QR الطرد أولاً');return;}
+  WsUI.showLoading(true);
+  const r=await WsParcels.updateStatus(_scannedParcelId,'delivered','تسليم ليفرور — توقيع زبون',{signature:'signed'});
+  WsUI.showLoading(false);
+  if(r.success){
+    document.getElementById('client-scan-result').style.display='none';
+    showSuccess('🎉 تم التسليم!','#'+_scannedParcelId+' خرج من عهدتك · +1.5 DT عمولة');
+    loadBalance();
+  } else {
+    showToast('❌ '+r.message);
+  }
+}
+
+async function markFailed(){
+  if(!_scannedParcelId){showToast('⚠️ امسح QR الطرد أولاً');return;}
+  WsUI.showLoading(true);
+  const r=await WsParcels.updateStatus(_scannedParcelId,'attempt','محاولة تسليم فاشلة');
+  WsUI.showLoading(false);
+  showToast(r.success?'📵 مُسجَّل — محاولة فاشلة':'❌ '+r.message);
+  document.getElementById('client-scan-result').style.display='none';
+  signed=false;
+}
+
+async function confirmHubTransfer(){
+  if(!_scannedParcelId){showToast('⚠️ امسح QR الطرد أولاً');return;}
+  WsUI.showLoading(true);
+  const r=await WsParcels.updateStatus(_scannedParcelId,'hub','تسليم ليفرور للهوب');
+  WsUI.showLoading(false);
+  if(r.success){
+    document.getElementById('hub-scan-result').style.display='none';
+    showSuccess('✅ نُقلت العهدة!','#'+_scannedParcelId+' خرج من عهدتك · +1.0 DT عمولة');
+  } else showToast('❌ '+r.message);
+}
+
+// ─── BALANCE TRANSFER (حقيقي) ─────────────────
+function selWM(el){document.querySelectorAll('.wm-btn').forEach(b=>b.classList.remove('selected'));el.classList.add('selected');}
+async function doTransfer(){
+  const a=document.getElementById('balance-amount')?.value;
+  if(!a||a<=0){showToast('⚠️ أدخل المبلغ');return;}
+  const methodEl=document.querySelector('.wm-btn.selected .wm-lbl');
+  const methodMap={'هوب قريبة':'hub_cash','D17':'d17','بريد تونس':'poste','تحويل بنكي':'bank'};
+  const method=methodMap[methodEl?.textContent?.trim()]||'hub_cash';
+  WsUI.showLoading(true);
+  const r=await WsFinance.requestWithdraw(parseFloat(a),method);
+  WsUI.showLoading(false);
+  if(r.success){
+    showToast('✅ '+r.message);
+    document.getElementById('balance-amount').value='';
+    document.getElementById('blocker')?.classList.remove('open');
+  } else showToast('❌ '+r.message);
+}
+
+// BLOCKER (بلافون الكاش)
+function selPay(el){document.querySelectorAll('.pay-opt').forEach(p=>p.classList.remove('sel'));el.classList.add('sel');}
+function closeBlocker(){
+  const selected=document.querySelector('.pay-opt.sel');
+  if(!selected){showToast('⚠️ اختر طريقة التفريغ');return;}
+  document.getElementById('blocker').classList.remove('open');
+  showToast('✅ تم — يمكنك المواصلة');
+}
+function showBlocker(){document.getElementById('blocker').classList.add('open');}
+
+// SUCCESS
+function showSuccess(title,sub){
+  const ss=document.getElementById('success-screen');
+  document.getElementById('success-title').textContent=title;
+  document.getElementById('success-sub').textContent=sub;
+  ss.classList.add('show');
+}
+function closeSuccess(){document.getElementById('success-screen').classList.remove('show');}
+
+// MODAL
+function closeModal(){document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal();}));
+
+// TOAST
+function showToast(msg,type){WsUI.showToast(msg,type||'info');}
+
+// AUTO-INIT
+document.addEventListener('DOMContentLoaded',async ()=>{
+  const user=WsAuth.guard('livreur');
+  if(user){
+    document.querySelectorAll('.ws-user-name').forEach(el=>el.textContent=user.name);
+    loadBalance();
+    loadParcels();
+    // تفعيل GPS تلقائياً
+    const parcels = await WsParcels.list();
+    const ids = parcels.parcels?.map(p=>p.id) || [];
+    WsGPS.start(ids);
+  }
+});
+
+</script>
+</body>
+</html>
