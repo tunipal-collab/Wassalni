@@ -1,0 +1,13 @@
+# بيانات سرية — لا ترفعها أبداً
+.env
+serviceAccountKey.json
+*.key
+*.pem
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# نظام التشغيل
+.DS_Store
+Thumbs.db
